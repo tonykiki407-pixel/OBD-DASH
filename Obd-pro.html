@@ -2,111 +2,120 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#07090d">
-<title>OBD-PRO Turbo Dash</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#050506">
+<title>Impreza OBD Dash</title>
 <!-- 100% self-contained: no CDN needed, works offline in the car. -->
 <style>
-:root{--bg:#07090d;--panel:#10141b;--panel2:#161b24;--line:#232a36;--text:#e8edf4;--muted:#8792a2;
-  --accent:#22c55e;--rpm:#22c55e;--boost:#a855f7;--speed:#3b82f6;--warn:#f59e0b;--bad:#ef4444}
+:root{--bg:#050506;--panel:#0e0f12;--panel2:#17191d;--line:#272a30;--text:#eceef1;--muted:#8b919b;
+  --wr:#2b5cb8;--wr2:#3f73d9;--lcd:#ffb347;--needle:#ff4a1c;--ok:#4ade80;--warn:#f5a524;--bad:#ef4444;color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 header{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;
-  padding:10px 16px;background:#0b0e14ee;border-bottom:1px solid var(--line);backdrop-filter:blur(6px)}
+  padding:10px max(16px,env(safe-area-inset-right)) 10px max(16px,env(safe-area-inset-left));background:#08090bee;border-bottom:2px solid var(--wr);backdrop-filter:blur(6px)}
 .brand{display:flex;gap:10px;align-items:center}
-.logo{width:36px;height:36px;border-radius:10px;background:var(--accent);color:#04120a;display:grid;place-items:center;font-weight:900;font-size:18px}
-.brand h1{font-size:16px;margin:0;letter-spacing:.04em}
+.logo{width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#4f86ef,#1d3f8a);color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px;letter-spacing:.02em;border:2px solid #9fb4dc}
+.brand h1{font-size:16px;margin:0;letter-spacing:.08em}
 .brand p{margin:0;font-size:11px;color:var(--muted)}
 .actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:8px 12px;border-radius:10px;font:600 13px system-ui,sans-serif;cursor:pointer}
-.btn:hover{border-color:#3a4456}
-.btn.primary{background:var(--accent);color:#04120a;border-color:transparent}
+.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:9px 12px;border-radius:10px;font:600 13px system-ui,sans-serif;cursor:pointer}
+.btn:hover{border-color:#3d4450}
+.btn.primary{background:var(--wr);border-color:var(--wr2);color:#fff}
 .btn.danger{color:#fca5a5;border-color:#7f1d1d}
-.btn.on{background:#3b0764;border-color:var(--boost);color:#e9d5ff}
-.btn.small{padding:6px 10px;font-size:12px}
+.btn.on{background:#5b1d0e;border-color:var(--needle);color:#ffd9cc}
+.btn:disabled{opacity:.45;cursor:default}
 .pill{display:inline-flex;gap:6px;align-items:center;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid}
 .pill i{width:8px;height:8px;border-radius:50%;background:currentColor}
 .pill.off{color:#f87171;border-color:#7f1d1d}.pill.sim{color:#fbbf24;border-color:#78350f}
 .pill.busy{color:#60a5fa;border-color:#1e3a8a}.pill.ok{color:#4ade80;border-color:#14532d}
-.shift{height:6px}
-.shift.lit{background:var(--bad);animation:blink .12s steps(2) infinite}
-@keyframes blink{50%{opacity:.2}}
-main{max-width:1400px;margin:0 auto;padding:16px;display:grid;gap:16px;grid-template-columns:minmax(0,1fr) 360px}
+main{max-width:1400px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-right)) 16px max(16px,env(safe-area-inset-left));display:grid;gap:16px;grid-template-columns:minmax(0,1fr) 370px}
 @media(max-width:1000px){main{grid-template-columns:minmax(0,1fr)}}
 .col{display:grid;gap:16px;align-content:start;min-width:0}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px}
-.card h2{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);
-  display:flex;justify-content:space-between;align-items:center;gap:8px}
-.gauges{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-@media(max-width:700px){.gauges{grid-template-columns:1fr 1fr}.gauges .boostcard{grid-column:1/-1;order:-1}}
-.gauge{position:relative}
-.gauge canvas{width:100%;aspect-ratio:1/1;display:block}
-.readout{position:absolute;left:0;right:0;bottom:12%;text-align:center;pointer-events:none}
-.readout b{display:block;font-size:clamp(22px,3.4vw,38px);font-variant-numeric:tabular-nums;font-weight:800}
-.readout span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
-.tile .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
-.tile .v{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
-.bar{height:5px;background:var(--panel2);border-radius:9px;overflow:hidden;margin-top:8px}
-.bar>div{height:100%;width:0;transition:width .2s}
+.card h2{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);display:flex;justify-content:space-between;align-items:center;gap:8px}
+/* Hawkeye-style cluster: speedo | big centre tach | fuel + temp */
+.cluster-card{background:radial-gradient(ellipse at 50% 0%,#15171b,#060607 70%);border-color:#1f2227}
+/* minmax(0,…) + min-width:0 so the canvases' pixel size never widens the columns (phones have 3× pixels) */
+.cluster{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) minmax(0,.55fr);gap:10px;align-items:center}
+.cluster>div{min-width:0}
+.cluster canvas{width:100%;aspect-ratio:1/1;display:block;max-width:100%;min-width:0}
+.g-small{display:grid;gap:10px;grid-template-columns:minmax(0,1fr)}
+#inPill,#outPill{cursor:pointer}
+@media(max-width:700px){.cluster{grid-template-columns:minmax(0,2fr) minmax(0,1fr);grid-template-areas:"tach tach" "speed small"}
+  .g-tach{grid-area:tach}.g-speed{grid-area:speed}.g-small{grid-area:small}}
+.leds{display:flex;justify-content:center;gap:6px;margin:0 0 10px}
+.leds i{width:16px;height:7px;border-radius:3px;background:#1b1d21;transition:background .05s}
+.leds i.g{background:#22c55e;box-shadow:0 0 8px #22c55e}.leds i.y{background:#facc15;box-shadow:0 0 8px #facc15}.leds i.r{background:#ef4444;box-shadow:0 0 8px #ef4444}
+.leds.flash i{animation:blink .1s steps(2) infinite;background:#ef4444}
+@keyframes blink{50%{opacity:.15}}
+.lcd{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:8px;margin-top:12px;background:#0b0703;border:1px solid #2a2116;border-radius:12px;padding:10px}
+.lcd div{min-width:0}
+.lcd span{display:block;font-size:10px;color:#a37a43;letter-spacing:.1em}
+.lcd b{display:block;font:700 19px ui-monospace,Consolas,monospace;color:var(--lcd);text-shadow:0 0 8px rgba(255,170,60,.45);font-variant-numeric:tabular-nums;white-space:nowrap}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{border:1px solid var(--line);background:var(--panel2);color:var(--muted);border-radius:8px;padding:4px 8px;font:700 11px system-ui,sans-serif;cursor:pointer}
-.chip.on{color:var(--text)}
+.chip{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:8px;padding:4px 8px;font:700 11px system-ui,sans-serif;cursor:pointer}
 .chip i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px}
-#chart{width:100%;height:220px;display:block}
-.sl{display:grid;grid-template-columns:78px 1fr 34px;gap:8px;align-items:center;font-size:12px;color:var(--muted);margin:6px 0}
-input[type=range]{width:100%;accent-color:var(--boost)}
+#chart{width:100%;height:200px;display:block}
+.link{border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--panel2)}
+.link+.link{margin-top:10px}
+.linkhead{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px;font-size:13px}
+.linkhead b{color:#9fb4dc;letter-spacing:.06em}
+.dev{font-size:11px;color:var(--muted);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:55%}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.small-link{display:inline-block;margin-top:8px;font-size:12px;color:#8fb0ee}
+.chk{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted);margin-top:8px}
+.note{font-size:11px;color:var(--muted);margin:8px 0 0}
+.sl{display:grid;grid-template-columns:90px 1fr 34px;gap:8px;align-items:center;font-size:12px;color:var(--muted);margin:6px 0}
+input[type=range]{width:100%;accent-color:var(--needle)}
 select,input[type=text],input[type=number]{background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:inherit;min-width:0}
+.field{display:grid;gap:4px;font-size:12px;color:var(--muted);margin-bottom:8px}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .grow{flex:1}
-.meter{height:8px;background:var(--panel2);border-radius:9px;overflow:hidden}
-.meter>div{height:100%;width:0;background:linear-gradient(90deg,#7c3aed,#e879f9)}
-.note{font-size:11px;color:var(--muted);margin:8px 0 0}
+.meter{height:8px;background:var(--bg);border-radius:9px;overflow:hidden}
+.meter>div{height:100%;width:0;background:linear-gradient(90deg,#b45309,#ff4a1c)}
+.tag{font-size:10px;padding:2px 8px;border-radius:6px;border:1px solid var(--line);color:var(--muted)}
+.tag.on{color:var(--ok);border-color:#14532d}.tag.warn{color:var(--warn);border-color:#78350f}
+details{margin-top:10px;font-size:12px}
+summary{cursor:pointer;color:#8fb0ee}
+.sample{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;margin-top:8px}
+.sample input{font-size:11px;max-width:100%}
 .dtc{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--bg);margin-bottom:6px}
 .dtc b{color:var(--warn)} .dtc em{float:right;font-style:normal;font-size:10px;color:var(--muted)}
 .dtc div{font-size:12px;color:#cbd5e1}
-.mil{font-size:10px;padding:2px 8px;border-radius:6px;border:1px solid var(--line);color:var(--muted)}
-.mil.on{color:var(--warn);border-color:#78350f}
-#dtcs{max-height:240px;overflow:auto;min-height:60px}
-#term{height:170px;overflow:auto;background:#030507;border:1px solid var(--line);border-radius:10px;padding:8px;
-  font:11px/1.45 ui-monospace,Consolas,monospace;color:#86efac;white-space:pre-wrap;word-break:break-all}
+#dtcs{max-height:240px;overflow:auto;min-height:50px}
+#term{height:160px;overflow:auto;background:#030507;border:1px solid var(--line);border-radius:10px;padding:8px;font:11px/1.45 ui-monospace,Consolas,monospace;color:#86efac;white-space:pre-wrap;word-break:break-all}
 dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:18px;padding:20px;max-width:460px;width:calc(100% - 32px)}
 dialog::backdrop{background:#000b}
-dialog h3{margin:0 0 4px}
-.opt{display:block;width:100%;text-align:left;margin:10px 0 0;padding:14px}
-.opt small{display:block;color:var(--muted);font-weight:400;margin-top:3px}
-.form{display:grid;grid-template-columns:1fr 130px;gap:10px;align-items:center;margin:14px 0;font-size:13px}
+dialog h3{margin:0 0 6px}
+.form{display:grid;grid-template-columns:1fr 140px;gap:10px;align-items:center;margin:14px 0;font-size:13px}
 </style>
 </head>
 <body>
 
 <header>
   <div class="brand">
-    <div class="logo">⚡</div>
-    <div><h1>OBD-PRO TURBO DASH</h1><p>ELM327 live data · diagnostics · turbo sound</p></div>
+    <div class="logo">2.5i</div>
+    <div><h1>IMPREZA OBD DASH</h1><p>EJ25 boxer · live data · diagnostics · virtual turbo sound</p></div>
   </div>
   <div class="actions">
-    <span id="status" class="pill off"><i></i><span id="statusText">Disconnected</span></span>
-    <button id="btnConnect" class="btn primary">Connect</button>
-    <button id="btnSound" class="btn">🔊 Turbo sound: OFF</button>
+    <span id="inPill" class="pill off" title="Input: OBD scanner"><i></i>OBD: <span id="inText">not connected</span></span>
+    <span id="outPill" class="pill off" title="Output: speaker"><i></i>Speaker: <span id="outText">sound off</span></span>
     <button id="btnUnits" class="btn">Metric</button>
     <button id="btnSettings" class="btn" title="Settings">⚙</button>
   </div>
 </header>
-<div id="shift" class="shift"></div>
 
 <main>
   <div class="col">
-    <section class="gauges">
-      <div class="card"><h2>Engine RPM</h2>
-        <div class="gauge"><canvas id="gRpm"></canvas><div class="readout"><b id="vRpm" style="color:var(--rpm)">0</b><span>rpm</span></div></div></div>
-      <div class="card boostcard"><h2>Boost <span id="vPeak" title="Click to reset peak" style="cursor:pointer">peak –</span></h2>
-        <div class="gauge"><canvas id="gBoost"></canvas><div class="readout"><b id="vBoost" style="color:var(--boost)">0.00</b><span id="uBoost">bar</span></div></div></div>
-      <div class="card"><h2>Speed</h2>
-        <div class="gauge"><canvas id="gSpeed"></canvas><div class="readout"><b id="vSpeed" style="color:var(--speed)">0</b><span id="uSpeed">km/h</span></div></div></div>
+    <section class="card cluster-card">
+      <div class="leds" id="leds"></div>
+      <div class="cluster">
+        <div class="g-speed"><canvas id="gSpeed"></canvas></div>
+        <div class="g-tach"><canvas id="gTach"></canvas></div>
+        <div class="g-small"><canvas id="gFuel"></canvas><canvas id="gTemp"></canvas></div>
+      </div>
+      <div class="lcd" id="lcd"></div>
     </section>
-
-    <section class="tiles" id="tiles"></section>
 
     <section class="card">
       <h2>Live telemetry · last 30 s <span class="chips" id="chips"></span></h2>
@@ -115,69 +124,102 @@ dialog h3{margin:0 0 4px}
   </div>
 
   <aside class="col">
-    <section class="card">
-      <h2>Turbo sound <span id="soundState" class="mil">off</span></h2>
-      <div class="row" style="margin-bottom:8px">
-        <label class="grow" style="font-size:12px;color:var(--muted)">Valve
-          <select id="bovStyle" style="width:100%"><option value="bov">Blow-off "pssshh"</option><option value="flutter">Flutter "stu-tu-tu"</option><option value="both">Both</option></select></label>
-        <label class="grow" style="font-size:12px;color:var(--muted)">Output
-          <select id="sink" style="width:100%"><option value="">System default</option></select></label>
+    <section class="card" id="links">
+      <h2>Connections</h2>
+      <div class="link">
+        <div class="linkhead"><span><b>1 · INPUT</b> OBD scanner</span><span id="inDev" class="dev">–</span></div>
+        <div class="grid2">
+          <button id="btnBle" class="btn primary">Pair &amp; connect Bluetooth</button>
+          <button id="btnReconnect" class="btn">Reconnect last</button>
+          <button id="btnSerial" class="btn">USB / classic BT</button>
+          <button id="btnWifi" class="btn">Wi-Fi scanner</button>
+          <button id="btnSim" class="btn">Demo car</button>
+          <button id="btnDisc" class="btn danger">Disconnect</button>
+        </div>
+        <a href="#" id="btnBleAll" class="small-link">Scanner not in the list? Show all Bluetooth devices</a>
+        <label class="chk"><input type="checkbox" id="chkAuto"> Auto-reconnect when the signal drops</label>
+        <p class="note">Plug the scanner in, ignition ON, then “Pair &amp; connect”. The phone scans and pairs in the pop-up – no trip to Bluetooth settings needed for BLE scanners.</p>
       </div>
+      <div class="link">
+        <div class="linkhead"><span><b>2 · OUTPUT</b> Speaker</span><span id="outDev" class="dev">–</span></div>
+        <div class="grid2">
+          <button id="btnSound" class="btn primary">Start turbo sound</button>
+          <button id="btnTestOut" class="btn">Test speaker</button>
+        </div>
+        <select id="sink" style="width:100%;margin-top:8px" hidden><option value="">System default output</option></select>
+        <button id="btnPickOut" class="btn" style="width:100%;margin-top:8px" hidden>Choose speaker…</button>
+        <p class="note" id="outNote">Pair the Bluetooth speaker in the phone's Bluetooth settings once. The sound then plays on it automatically while the scanner stays connected here – both run at the same time.</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Virtual turbo <span id="soundState" class="tag">off</span></h2>
+      <label class="field">Valve sound on lift-off
+        <select id="valveStyle"><option value="flutter">Flutter “stu-tu-tu” (no BOV)</option><option value="bov">Blow-off valve “pssshh”</option><option value="both">Flutter + blow-off</option></select></label>
       <div id="sliders"></div>
       <div class="row" style="margin-top:6px"><span style="font-size:12px;color:var(--muted)">Spool</span><div class="meter grow"><div id="spoolBar"></div></div></div>
-      <div class="row" style="margin-top:10px">
-        <button id="btnTestSpool" class="btn small grow">Test spool + BOV</button>
-        <button id="btnTestBov" class="btn small grow">Test BOV</button>
+      <div class="grid2" style="margin-top:10px">
+        <button id="btnTestSpool" class="btn">Spool up + lift off</button>
+        <button id="btnTestValve" class="btn">Fire valve now</button>
       </div>
-      <p class="note">Pair your Bluetooth speaker with this phone/PC first, then press “Turbo sound”. Sound follows RPM, throttle and boost; lifting off the throttle fires the valve.</p>
+      <details>
+        <summary>Use your own recorded turbo sounds (most realistic)</summary>
+        <div class="sample"><label class="field" style="margin:0">Blow-off recording <input type="file" id="fileBov" accept="audio/*"></label><button id="clrBov" class="btn" hidden>Remove</button></div>
+        <div class="note" id="nameBov">Using the built-in synthesized sound.</div>
+        <div class="sample"><label class="field" style="margin:0">Flutter recording <input type="file" id="fileFlutter" accept="audio/*"></label><button id="clrFlutter" class="btn" hidden>Remove</button></div>
+        <div class="note" id="nameFlutter">Using the built-in synthesized sound.</div>
+        <p class="note">Any MP3/WAV/M4A clip, about 1 second, trimmed to start right at the sound. It is saved on this phone and played louder and slightly faster the harder you were on the throttle.</p>
+      </details>
     </section>
 
     <section class="card">
-      <h2>Diagnostics (DTC) <span id="mil" class="mil">MIL –</span></h2>
-      <div class="row" style="margin-bottom:10px">
-        <button id="btnScan" class="btn small grow" style="background:var(--warn);color:#1a1000;border-color:transparent">Scan codes</button>
-        <button id="btnClear" class="btn small danger">Clear codes</button>
+      <h2>Diagnostics (DTC) <span id="mil" class="tag">MIL –</span></h2>
+      <div class="grid2" style="margin-bottom:10px">
+        <button id="btnScan" class="btn" style="background:var(--warn);color:#1a1000;border-color:transparent">Scan codes</button>
+        <button id="btnClear" class="btn danger">Clear codes</button>
       </div>
-      <div id="dtcs"><p class="note">Press “Scan codes” to read stored (Mode 03) and pending (Mode 07) trouble codes.</p></div>
+      <div id="clearConfirm" class="link" hidden>
+        <div style="font-size:12px">Clear all codes and turn off the check-engine light? Freeze-frame data and readiness monitors reset. Ignition ON, engine OFF.</div>
+        <div class="grid2" style="margin-top:8px"><button id="btnClearYes" class="btn danger">Yes, clear</button><button id="btnClearNo" class="btn">Cancel</button></div>
+      </div>
+      <div id="dtcs"><p class="note">“Scan codes” reads stored (Mode 03) and pending (Mode 07) trouble codes.</p></div>
     </section>
 
     <section class="card">
-      <h2>ELM327 console <button id="btnClearLog" class="btn small">Clear</button></h2>
+      <h2>ELM327 console <button id="btnClearLog" class="btn" style="padding:4px 10px;font-size:11px">Clear</button></h2>
       <div id="term"></div>
       <div class="row" style="margin-top:8px">
         <input id="cmd" type="text" class="grow" placeholder="AT or OBD command, e.g. 010C, ATRV" autocomplete="off">
-        <button id="btnSend" class="btn small primary">Send</button>
+        <button id="btnSend" class="btn primary">Send</button>
       </div>
     </section>
   </aside>
 </main>
 
-<dialog id="dlgConnect">
-  <h3>Connect OBD-II adapter</h3>
-  <p class="note">Plug the ELM327 into the car's OBD port and switch ignition ON (engine running is best).</p>
-  <button class="btn opt" data-conn="ble">🔵 Bluetooth Low Energy (BLE)
-    <small>Vgate iCar Pro BLE, Veepeak BLE, OBDLink CX… Works in Chrome/Edge on Android, Windows, Mac.</small></button>
-  <button class="btn opt" data-conn="serial">🔌 Serial / COM port
-    <small>USB cables, or classic Bluetooth ELM327 paired in Windows (shows up as a COM port). Chrome/Edge desktop.</small></button>
-  <button class="btn opt" data-conn="sim">✨ Simulation
-    <small>Fake car driving & shifting – test the dashboard and sounds without a car.</small></button>
-  <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" data-conn="cancel">Cancel</button></div>
-</dialog>
-
 <dialog id="dlgSettings">
   <h3>Settings</h3>
   <div class="form">
-    <label for="sCyl">Engine cylinders</label><select id="sCyl"><option>3</option><option>4</option><option>5</option><option>6</option><option>8</option></select>
-    <label for="sRed">Redline (rpm)</label><input id="sRed" type="number" step="100" min="3000" max="12000">
-    <label for="sShift">Shift light (rpm)</label><input id="sShift" type="number" step="100" min="2000" max="12000">
-    <label for="sBoost">Max boost (bar)</label><input id="sBoost" type="number" step="0.1" min="0.3" max="4">
-    <label for="sSpool">Sound driven by</label><select id="sSpool"><option value="auto">Auto</option><option value="virtual">Throttle + RPM (virtual turbo)</option><option value="real">Real boost sensor</option></select>
+    <label for="sTrans">Transmission</label><select id="sTrans"><option value="5MT">5-speed manual</option><option value="4AT">4-speed automatic</option></select>
+    <label for="sRed">Redline (rpm)</label><input id="sRed" type="number" step="100" min="4000" max="9000">
+    <label for="sShift">Shift lights full at (rpm)</label><input id="sShift" type="number" step="100" min="2000" max="9000">
+    <label for="sTrig">Valve fires when throttle drops by (%)</label><input id="sTrig" type="number" step="5" min="5" max="60">
     <label for="sBaud">Serial baud rate</label><select id="sBaud"><option>9600</option><option>38400</option><option>115200</option><option>230400</option><option>500000</option></select>
   </div>
-  <p class="note">“Auto” uses the real MAP sensor once the car shows boost, otherwise simulates a turbo from throttle and RPM – so a non-turbo car still sounds turbo.</p>
+  <p class="note">Your 2.5i has no turbo, so the turbo sound is “virtual”: spool builds from throttle and RPM, and lifting off fires the valve sound.</p>
   <div class="row" style="justify-content:flex-end;margin-top:14px">
     <button class="btn" id="btnSetCancel">Cancel</button><button class="btn primary" id="btnSetSave">Save</button>
   </div>
+</dialog>
+
+<dialog id="dlgWifi">
+  <h3>Wi-Fi OBD scanners</h3>
+  <p style="font-size:13px">Wi-Fi ELM327 scanners need a direct network connection (usually 192.168.0.10, port 35000). Phone browsers do not allow web pages to open that kind of connection, so no web app can talk to a Wi-Fi scanner.</p>
+  <p style="font-size:13px">Options:</p>
+  <ul style="font-size:13px;padding-left:18px">
+    <li>Use a <b>Bluetooth LE</b> scanner (Vgate iCar Pro BLE, Veepeak OBDCheck BLE, OBDLink CX). Works here with “Pair &amp; connect”.</li>
+    <li>Or a native Android app version of this dashboard (installable APK) – that can use Wi-Fi and classic Bluetooth scanners.</li>
+  </ul>
+  <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn primary" id="btnWifiOk">OK</button></div>
 </dialog>
 
 <script>
@@ -187,38 +229,41 @@ const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 // ---------------------------------------------------------------- settings
-const DEFAULTS = { units: 'metric', cyl: 4, redline: 6500, shiftRpm: 6000, maxBoostBar: 1.5, baud: 38400,
-  spoolSrc: 'auto', bovStyle: 'bov', sinkId: '',
-  vol: { master: 0.8, whistle: 0.6, whoosh: 0.5, bov: 0.9, engine: 0.35 } };
+const DEFAULTS = { units: 'metric', trans: '5MT', redline: 6500, shiftRpm: 6000, trigger: 20, baud: 38400, autoReconnect: true,
+  valveStyle: 'flutter', sinkId: '', vol: { master: 0.9, whistle: 0.55, whoosh: 0.45, valve: 1, rumble: 0 } };
 let S = loadSettings();
 function loadSettings() {
   const d = JSON.parse(JSON.stringify(DEFAULTS));
-  try { const s = JSON.parse(localStorage.getItem('obdpro') || '{}'); Object.assign(d, s); d.vol = Object.assign({}, DEFAULTS.vol, s.vol || {}); } catch (e) {}
+  try { const s = JSON.parse(localStorage.getItem('impreza-dash') || '{}'); Object.assign(d, s); d.vol = Object.assign({}, DEFAULTS.vol, s.vol || {}); } catch (e) {}
   return d;
 }
-function saveSettings() { try { localStorage.setItem('obdpro', JSON.stringify(S)); } catch (e) {} }
+function saveSettings() { try { localStorage.setItem('impreza-dash', JSON.stringify(S)); } catch (e) {} }
 
-// ---------------------------------------------------------------- live data
-// map/baro in kPa absolute, temps in °C, speed in km/h
-const live = { rpm: 0, speed: 0, map: 101, baro: 101, coolant: null, iat: null, throttle: 0, load: 0, fuel: null, volt: null };
-let peakBoost = 0;          // kPa above atmosphere
+// ---------------------------------------------------------------- live data (kPa, °C, km/h)
+const live = { rpm: 0, speed: 0, map: null, baro: 101, coolant: null, iat: null, throttle: 0, load: 0, fuel: null, volt: null, maf: null, timing: null };
 let thMin = 100;            // lowest raw throttle seen (closed throttle often reads 12–20 %)
 let mode = 'idle';          // idle | sim | ble | serial
-const boostKpa = () => live.map - live.baro;
+const vacuumKpa = () => live.map == null ? null : Math.max(0, live.baro - live.map);
 
 // ---------------------------------------------------------------- units
 const metric = () => S.units === 'metric';
-const fmtSpeed = kmh => metric() ? kmh : kmh * 0.621371;
-const fmtTemp = c => c == null ? '–' : (metric() ? Math.round(c) + ' °C' : Math.round(c * 9 / 5 + 32) + ' °F');
-const fmtBoost = kpa => metric() ? kpa / 100 : kpa * 0.145038;
-function boostRange() {
-  if (metric()) return { min: -1, max: Math.ceil((S.maxBoostBar + 0.3) * 2) / 2, step: 0.5, fmt: v => v.toFixed(1) };
-  return { min: -15, max: Math.ceil((S.maxBoostBar + 0.3) * 14.5038 / 5) * 5, step: 5, fmt: v => String(v) };
-}
-const rpmMax = () => Math.ceil((S.redline + 1000) / 1000) * 1000;
+const spd = kmh => metric() ? kmh : kmh * 0.621371;
+const tmp = c => c == null ? '–' : (metric() ? Math.round(c) + '°C' : Math.round(c * 9 / 5 + 32) + '°F');
+const vac = k => k == null ? '–' : (metric() ? Math.round(k) + ' kPa' : (k * 0.2953).toFixed(1) + ' inHg');
 const speedMax = () => metric() ? 260 : 160;
 
-// ---------------------------------------------------------------- console
+// ---------------------------------------------------------------- gearbox (for the gear estimate and demo car)
+const GEARS = { '5MT': { ratios: [3.454, 1.947, 1.296, 0.972, 0.738], final: 4.444 }, '4AT': { ratios: [2.785, 1.545, 1.0, 0.694], final: 4.111 } };
+const RPM_PER_KMH_PER_RATIO = 8.55;     // 205/55R16 tyre
+function gearEstimate() {
+  if (live.speed < 5 || live.rpm < 500) return 'N';
+  const g = GEARS[S.trans], r = live.rpm / (live.speed * RPM_PER_KMH_PER_RATIO * g.final);
+  let best = 0, err = 9;
+  g.ratios.forEach((x, i) => { const e = Math.abs(Math.log(r / x)); if (e < err) { err = e; best = i + 1; } });
+  return err < 0.12 ? String(best) : '–';
+}
+
+// ---------------------------------------------------------------- console & status
 function log(msg) {
   const t = $('term'), d = document.createElement('div');
   d.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
@@ -226,7 +271,8 @@ function log(msg) {
   while (t.childNodes.length > 400) t.removeChild(t.firstChild);
   t.scrollTop = t.scrollHeight;
 }
-function setStatus(text, cls) { $('statusText').textContent = text; $('status').className = 'pill ' + cls; }
+function setIn(text, cls) { $('inText').textContent = text; $('inPill').className = 'pill ' + cls; }
+function setOut(text, cls) { $('outText').textContent = text; $('outPill').className = 'pill ' + cls; }
 
 // ================================================================= ELM327 protocol
 class ELM {
@@ -275,16 +321,33 @@ function parsePid(lines, pid) {
   return null;
 }
 
-// ---------------------------------------------------------------- transports
+// ---------------------------------------------------------------- Bluetooth LE scanner (input)
 const BLE_SERVICES = [0xfff0, 0xffe0, 0x18f0, 0xfee7, 'e7810a71-73ae-499d-8c15-faa9aef0c3f2'];
-async function openBLE() {
-  if (!navigator.bluetooth) throw new Error('Web Bluetooth not available. Use Chrome or Edge (Android/Windows/Mac). iPhone: use the "Bluefy" browser.');
-  const device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: BLE_SERVICES });
-  log('[BLE] Connecting to ' + (device.name || 'device') + '…');
-  const server = await device.gatt.connect();
-  const services = await server.getPrimaryServices();
+const BLE_FILTERS = BLE_SERVICES.map(s => ({ services: [s] })).concat(
+  ['OBD', 'Obd', 'obd', 'Vgate', 'VEEPEAK', 'Veepeak', 'IOS-Vlink', 'Android-Vlink', 'vLink', 'V-LINK', 'ELM', 'KONNWEI', 'OBDLink', 'Carista', 'iCar']
+    .map(p => ({ namePrefix: p })));
+let bleDevice = null;
+
+async function pairBLE(all) {
+  if (!navigator.bluetooth) throw new Error('Bluetooth is not available in this browser. On Android open the link in Chrome; on iPhone use the Bluefy browser.');
+  if (navigator.bluetooth.getAvailability && !(await navigator.bluetooth.getAvailability())) throw new Error('Bluetooth is switched off on this phone – switch it on and try again.');
+  const dev = await navigator.bluetooth.requestDevice(all
+    ? { acceptAllDevices: true, optionalServices: BLE_SERVICES }
+    : { filters: BLE_FILTERS, optionalServices: BLE_SERVICES });
+  bleDevice = dev;
+  try { localStorage.setItem('impreza-dash-dev', dev.name || ''); } catch (e) {}
+  return dev;
+}
+
+async function linkBLE(device) {
+  log('[BLE] Connecting to ' + (device.name || 'scanner') + '…');
+  let server;
+  for (let i = 0; ; i++) {
+    try { server = await device.gatt.connect(); break; }
+    catch (e) { if (i >= 2) throw e; await sleep(700); }
+  }
   let rx = null, tx = null;
-  for (const s of services) {                       // find a notify (RX) + write (TX) pair in the same service
+  for (const s of await server.getPrimaryServices()) {   // find a notify (RX) + write (TX) pair in the same service
     let r = null, w = null;
     for (const c of await s.getCharacteristics()) {
       if (!r && (c.properties.notify || c.properties.indicate)) r = c;
@@ -292,8 +355,10 @@ async function openBLE() {
     }
     if (r && w) { rx = r; tx = w; break; }
   }
-  if (!rx) { device.gatt.disconnect(); throw new Error('This device has no ELM327 serial service. Is it a BLE OBD adapter? (Classic Bluetooth adapters: use Serial / COM port on Windows.)'); }
+  if (!rx) { device.gatt.disconnect(); throw new Error('This device is not an OBD scanner (no ELM327 serial service). Choose your scanner in the list.'); }
   const dec = new TextDecoder(), enc = new TextEncoder();
+  const onValue = e => t.onData && t.onData(dec.decode(e.target.value));
+  const onDisc = () => t.onClose && t.onClose();
   const t = {
     onData: null, onClose: null,
     async write(s) {
@@ -304,25 +369,34 @@ async function openBLE() {
         else await tx.writeValue(chunk);
       }
     },
-    async close() { try { await rx.stopNotifications(); } catch (e) {} try { device.gatt.disconnect(); } catch (e) {} }
+    async close() {
+      device.removeEventListener('gattserverdisconnected', onDisc);
+      rx.removeEventListener('characteristicvaluechanged', onValue);
+      try { await rx.stopNotifications(); } catch (e) {}
+      try { device.gatt.disconnect(); } catch (e) {}
+    }
   };
-  rx.addEventListener('characteristicvaluechanged', e => t.onData && t.onData(dec.decode(e.target.value)));
+  rx.addEventListener('characteristicvaluechanged', onValue);
   await rx.startNotifications();
-  device.addEventListener('gattserverdisconnected', () => t.onClose && t.onClose());
-  log('[BLE] Linked to ' + (device.name || 'adapter'));
+  device.addEventListener('gattserverdisconnected', onDisc);
+  log('[BLE] Linked to ' + (device.name || 'scanner'));
   return t;
 }
 
+// ---------------------------------------------------------------- USB / classic Bluetooth (Web Serial)
 async function openSerial(baud) {
-  if (!navigator.serial) throw new Error('Web Serial not available. Use Chrome or Edge on a computer.');
-  const port = await navigator.serial.requestPort();
+  if (!navigator.serial) throw new Error('This browser cannot open serial ports. Use a Bluetooth LE scanner with “Pair & connect”, or Chrome/Edge on a computer.');
+  // 0x1101 = Bluetooth Serial Port Profile, so paired classic-Bluetooth ELM327s are listed too
+  const port = await navigator.serial.requestPort({ allowedBluetoothServiceClassIds: ['00001101-0000-1000-8000-00805f9b34fb'] });
   await port.open({ baudRate: baud });
   const enc = new TextEncoder(), dec = new TextDecoder();
   const writer = port.writable.getWriter(), reader = port.readable.getReader();
+  let closing = false;
   const t = {
     onData: null, onClose: null,
     async write(s) { await writer.write(enc.encode(s)); },
     async close() {
+      closing = true;
       try { await reader.cancel(); } catch (e) {}
       try { reader.releaseLock(); } catch (e) {}
       try { writer.releaseLock(); } catch (e) {}
@@ -332,46 +406,84 @@ async function openSerial(baud) {
   (async () => {
     try { for (;;) { const { value, done } = await reader.read(); if (done) break; t.onData && t.onData(dec.decode(value, { stream: true })); } }
     catch (e) {}
-    t.onClose && t.onClose();
+    if (!closing) t.onClose && t.onClose();
   })();
   log('[Serial] Port open at ' + baud + ' baud');
   return t;
 }
 
-// ---------------------------------------------------------------- connection
-let elm = null, transport = null, pollToken = 0, isCAN = true;
-const supported = new Set();
-const disabled = new Set();
+// ---------------------------------------------------------------- input connection
+let elm = null, transport = null, pollToken = 0, isCAN = true, userClosed = false;
+const supported = new Set(), disabled = new Set();
 
-async function connect(kind) {
-  $('dlgConnect').close();
-  if (kind === 'cancel') return;
+async function connectInput(kind, opts = {}) {
+  userClosed = false;
   await disconnect(true);
-  if (kind === 'sim') { mode = 'sim'; thMin = 0; setStatus('Simulation', 'sim'); log('[Sim] Virtual car running – it will accelerate, shift and lift off.'); keepAwake(); updateConnectBtn(); return; }
+  if (kind === 'sim') {
+    mode = 'sim'; thMin = 0; setIn('demo car', 'sim'); $('inDev').textContent = 'Demo car';
+    log('[Demo] Virtual Impreza running – it accelerates, shifts and lifts off.'); keepAwake(); return true;
+  }
   try {
-    setStatus('Connecting…', 'busy');
-    transport = kind === 'ble' ? await openBLE() : await openSerial(+S.baud);
-    transport.onClose = () => { if (mode !== 'idle') { log('[Link] Adapter disconnected.'); disconnect(); } };
-    elm = new ELM(transport);
-    mode = kind;
-    updateConnectBtn();
+    setIn('connecting…', 'busy');
+    if (kind === 'ble') {
+      const dev = opts.device || await pairBLE(opts.all);
+      $('inDev').textContent = dev.name || 'BLE scanner';
+      transport = await linkBLE(dev);
+    } else {
+      transport = await openSerial(+S.baud);
+      $('inDev').textContent = 'Serial port';
+    }
+    transport.onClose = () => onLinkLost(kind);
+    elm = new ELM(transport); mode = kind; thMin = 100;
     await initELM();
-    setStatus(kind === 'ble' ? 'BLE connected' : 'Serial connected', 'ok');
+    setIn('live data', 'ok');
     keepAwake();
     pollLoop(++pollToken);
+    return true;
   } catch (e) {
-    log('[Error] ' + e.message);
+    log(e.name === 'NotFoundError' ? '[Link] No scanner chosen.' : '[Error] ' + e.message);
     await disconnect();
+    return false;
   }
 }
 
 async function disconnect(silent) {
-  const wasReal = !!transport;
   pollToken++; mode = 'idle'; elm = null;
-  if (transport) { const t = transport; transport = null; await t.close(); }
-  if (!silent || wasReal) setStatus('Disconnected', 'off');
-  live.rpm = 0; live.speed = 0; live.throttle = 0; live.load = 0; live.map = live.baro;
-  updateConnectBtn();
+  if (transport) { const t = transport; transport = null; t.onClose = null; await t.close(); }
+  if (!silent) { setIn('not connected', 'off'); $('inDev').textContent = '–'; }
+  live.rpm = 0; live.speed = 0; live.throttle = 0; live.load = 0;
+}
+
+// The scanner dropped out (bad signal, ignition off…): retry a few times without a new pairing pop-up.
+async function onLinkLost(kind) {
+  if (mode === 'idle') return;
+  log('[Link] Scanner connection lost.');
+  const dev = bleDevice;
+  await disconnect(true);
+  if (kind === 'ble' && dev && S.autoReconnect) {
+    for (let i = 1; i <= 6; i++) {
+      if (userClosed || mode !== 'idle') return;
+      setIn('reconnecting (' + i + ')…', 'busy');
+      await sleep(Math.min(8000, 1500 * i));
+      if (userClosed || mode !== 'idle') return;
+      if (await connectInput('ble', { device: dev })) return;
+    }
+  }
+  setIn('not connected', 'off');
+}
+
+async function reconnectLast() {
+  let dev = bleDevice;
+  if (!dev && navigator.bluetooth && navigator.bluetooth.getDevices) {
+    try {
+      const name = localStorage.getItem('impreza-dash-dev');
+      const list = await navigator.bluetooth.getDevices();
+      dev = list.find(d => d.name === name) || list[0] || null;
+    } catch (e) {}
+  }
+  if (!dev) { log('[BLE] No remembered scanner yet – use “Pair & connect Bluetooth” once.'); return false; }
+  bleDevice = dev;
+  return connectInput('ble', { device: dev });
 }
 
 function addSupported(lines, base) {
@@ -383,65 +495,63 @@ function addSupported(lines, base) {
 }
 
 async function initELM() {
-  log('[ELM] Resetting adapter…');
+  log('[ELM] Resetting scanner…');
   const r = await elm.send('ATZ', 5000).catch(() => []);
   await sleep(400);
   const id = r.find(l => /ELM|OBD|v\d/i.test(l));
-  log('[ELM] ' + (id || 'Adapter answered'));
+  log('[ELM] ' + (id || 'Scanner answered'));
   // echo off, linefeeds off, spaces off, headers off, adaptive timing, auto protocol
   for (const c of ['ATE0', 'ATL0', 'ATS0', 'ATH0', 'ATAT1', 'ATSP0']) await elm.send(c, 2500);
   try { const v = await elm.send('ATRV', 2000); const m = v.join('').match(/[\d.]+/); if (m) { live.volt = +m[0]; log('[ELM] Battery ' + m[0] + ' V'); } } catch (e) {}
 
-  log('[ELM] Searching vehicle protocol (can take 10 s)…');
+  log('[ELM] Talking to the ECU (first time can take 10 s)…');
   supported.clear(); disabled.clear();
   const sup = await elm.send('0100', 20000);
-  if (!addSupported(sup, '00')) throw new Error('ECU did not answer (' + (sup.join(' ') || 'nothing') + '). Turn ignition ON / start engine and try again.');
+  if (!addSupported(sup, '00')) throw new Error('ECU did not answer (' + (sup.join(' ') || 'nothing') + '). Turn the ignition ON (or start the engine) and try again.');
   for (const base of ['20', '40']) {
     if (!supported.has(parseInt(base, 16))) break;
     try { addSupported(await elm.send('01' + base, 3000), base); } catch (e) {}
   }
   try {
-    const dp = (await elm.send('ATDPN', 2000)).join('').replace(/^A/i, '');
-    const n = parseInt(dp, 16);
+    const n = parseInt((await elm.send('ATDPN', 2000)).join('').replace(/^A/i, ''), 16);
     isCAN = n >= 6 && n <= 0xC;
-    const desc = (await elm.send('ATDP', 2000)).join(' ');
-    log('[ELM] Protocol: ' + desc);
+    log('[ELM] Protocol: ' + (await elm.send('ATDP', 2000)).join(' '));
   } catch (e) {}
   if (supported.has(0x33)) {
-    try { const b = parsePid(await elm.send('0133', 2000), '33'); if (b && b[0] > 50) { live.baro = b[0]; log('[ECU] Barometric pressure ' + b[0] + ' kPa'); } } catch (e) {}
+    try { const b = parsePid(await elm.send('0133', 2000), '33'); if (b && b[0] > 50) live.baro = b[0]; } catch (e) {}
   }
-  if (!supported.has(0x0B)) log('[ECU] This car does not report MAP pressure – boost gauge will stay at 0, sound uses virtual turbo.');
   log('[ECU] Connected. ' + supported.size + ' PIDs supported. Live data running.');
 }
 
-// PID table: hex → [decoder, fast?]
+// PID decoders. Throttle is read twice per cycle so lift-off is caught fast for the valve sound.
 const PIDS = {
-  '0C': [b => live.rpm = ((b[0] << 8) + b[1]) / 4, true],
-  '11': [b => { live.throttle = b[0] * 100 / 255; thMin = Math.min(thMin, live.throttle); }, true],
-  '0B': [b => live.map = b[0], true],
-  '0D': [b => live.speed = b[0], true],
-  '04': [b => live.load = b[0] * 100 / 255, true],
-  '05': [b => live.coolant = b[0] - 40, false],
-  '0F': [b => live.iat = b[0] - 40, false],
-  '2F': [b => live.fuel = b[0] * 100 / 255, false],
+  '11': b => { live.throttle = b[0] * 100 / 255; thMin = Math.min(thMin, live.throttle); },
+  '0C': b => live.rpm = ((b[0] << 8) + b[1]) / 4,
+  '0D': b => live.speed = b[0],
+  '04': b => live.load = b[0] * 100 / 255,
+  '0B': b => live.map = b[0],
+  '05': b => live.coolant = b[0] - 40,
+  '0F': b => live.iat = b[0] - 40,
+  '2F': b => live.fuel = b[0] * 100 / 255,
+  '10': b => live.maf = ((b[0] << 8) + b[1]) / 100,
+  '0E': b => live.timing = b[0] / 2 - 64,
 };
-const NEED = { '0C': 2 };
+const NEED = { '0C': 2, '10': 2 };
+const FAST = ['11', '0C', '0D', '11', '04', '0B'], SLOW = ['05', '0F', '2F', '10', '0E'];
 
 async function pollLoop(token) {
   const fails = {}; let cycle = 0, errRun = 0;
   while (token === pollToken && elm) {
-    for (const [pid, [dec, fast]] of Object.entries(PIDS)) {
+    for (const pid of (cycle % 6 === 0 ? FAST.concat(SLOW) : FAST)) {
       if (token !== pollToken || !elm) return;
       const n = parseInt(pid, 16);
       if (disabled.has(n) || (supported.size && !supported.has(n))) continue;
-      if (!fast && cycle % 8 !== 0) continue;
       try {
-        const lines = await elm.send('01' + pid, 1500);
-        const b = parsePid(lines, pid);
-        if (b && b.length >= (NEED[pid] || 1)) { dec(b); fails[pid] = 0; errRun = 0; }
+        const b = parsePid(await elm.send('01' + pid, 1500), pid);
+        if (b && b.length >= (NEED[pid] || 1)) { PIDS[pid](b); fails[pid] = 0; errRun = 0; }
         else if ((fails[pid] = (fails[pid] || 0) + 1) >= 5) { disabled.add(n); log('[ECU] PID ' + pid + ' gives no data – skipped.'); }
       } catch (e) {
-        if (++errRun > 10) { log('[ECU] Lost communication with the car.'); disconnect(); return; }
+        if (++errRun > 10) { log('[ECU] Lost communication with the car.'); onLinkLost(mode); return; }
       }
     }
     if (cycle % 25 === 0) { try { const m = (await elm.send('ATRV', 1500)).join('').match(/[\d.]+/); if (m) live.volt = +m[0]; } catch (e) {} }
@@ -450,184 +560,269 @@ async function pollLoop(token) {
   }
 }
 
-// ================================================================= simulation
-const sim = { gear: 1, th: 0, thTarget: 0, next: 0, hold: 0, speed: 0, rpm: 850, spool: 0 };
-const RATIOS = [0, 3.5, 2.1, 1.4, 1.0, 0.8, 0.65];
+// ================================================================= demo car (naturally aspirated 2.5)
+const sim = { gear: 1, th: 0, thTarget: 0, next: 0, hold: 0, speed: 0, rpm: 800 };
 function simStep(dt) {
-  const now = performance.now() / 1000;
-  if (now > sim.next) { const r = Math.random(); sim.thTarget = r < 0.5 ? 100 : r < 0.75 ? 25 : 0; sim.next = now + 1.5 + Math.random() * 3; }
+  const now = performance.now() / 1000, g = GEARS[S.trans];
+  if (now > sim.next) { const r = Math.random(); sim.thTarget = r < 0.5 ? 100 : r < 0.75 ? 30 : 0; sim.next = now + 1.5 + Math.random() * 3; }
   if (now < sim.hold) sim.th = 0; else sim.th += (sim.thTarget - sim.th) * Math.min(1, dt * 8);
-  const ratio = RATIOS[sim.gear];
-  const accel = (sim.th / 100) * (ratio / 3.5) * 14 * (0.4 + 0.6 * sim.spool) - 1 - sim.speed * 0.02;
-  sim.speed = clamp(sim.speed + accel * dt, 0, 250);
-  sim.rpm = Math.max(850, sim.speed * ratio * 28);
-  if (sim.rpm > S.shiftRpm && sim.gear < 6) { sim.gear++; sim.hold = now + 0.35; sim.thTarget = 100; sim.next = now + 2; }
-  if (sim.rpm < 1700 && sim.gear > 1) sim.gear--;
-  const tgt = (sim.th / 100) * clamp((sim.rpm - 1800) / 2500, 0, 1);
-  sim.spool += (tgt - sim.spool) * dt * (tgt > sim.spool ? 1.8 : 5);
-  live.rpm = sim.rpm + (Math.random() - 0.5) * 20; live.speed = sim.speed; live.throttle = sim.th;
-  live.load = clamp(18 + sim.th * 0.8, 0, 100);
-  live.map = 32 + sim.th * 0.69 + sim.spool * S.maxBoostBar * 100;
-  live.coolant = 90 + Math.sin(now / 20) * 2; live.iat = 30 + sim.spool * 12; live.fuel = 68; live.volt = 14.1;
+  const ratio = g.ratios[sim.gear - 1], perKmh = ratio * g.final * RPM_PER_KMH_PER_RATIO;
+  const torque = 0.75 + 0.25 * Math.sin(clamp((sim.rpm - 1500) / 4500, 0, 1) * Math.PI);
+  const accel = (sim.th / 100) * (ratio / g.ratios[0]) * 15 * torque - 0.6 - sim.speed * 0.012;
+  sim.speed = clamp(sim.speed + accel * dt, 0, 220);
+  sim.rpm = Math.max(800, sim.speed * perKmh);
+  if (sim.rpm > S.shiftRpm && sim.gear < g.ratios.length) { sim.gear++; sim.hold = now + 0.4; sim.thTarget = 100; sim.next = now + 2.5; }
+  if (sim.rpm < 1600 && sim.gear > 1) sim.gear--;
+  live.rpm = sim.rpm + (Math.random() - 0.5) * 15; live.speed = sim.speed; live.throttle = sim.th;
+  live.load = clamp(20 + sim.th * 0.75, 0, 100); live.map = clamp(28 + sim.th * 0.72, 20, 100);
+  live.coolant = 88 + Math.sin(now / 25) * 3; live.iat = 28 + sim.th * 0.04; live.fuel = 64; live.volt = 14.2;
+  live.maf = 2.5 + live.rpm / 1000 * (1.2 + 30 * sim.th / 100); live.timing = 10 + (1 - sim.th / 100) * 20;
 }
 
-// ================================================================= turbo sound engine (Web Audio)
+// ================================================================= sound store (your own recordings, saved on the phone)
+const store = {
+  open() {
+    return new Promise((res, rej) => {
+      const r = indexedDB.open('impreza-dash', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('sounds');
+      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+    });
+  },
+  async run(mode, fn) {
+    const db = await this.open();
+    return new Promise((res, rej) => { const q = fn(db.transaction('sounds', mode).objectStore('sounds')); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); });
+  },
+  get(k) { return this.run('readonly', s => s.get(k)).catch(() => null); },
+  set(k, v) { return this.run('readwrite', s => s.put(v, k)).catch(() => null); },
+  del(k) { return this.run('readwrite', s => s.delete(k)).catch(() => null); },
+};
+
+// ================================================================= virtual turbo sound engine (output)
 class TurboSound {
-  constructor() { this.ctx = null; this.spool = 0; this.hist = []; this.lastBov = 0; this.force = 0; }
+  constructor() { this.ctx = null; this.spool = 0; this.hist = []; this.lastValve = -10; this.force = 0; this.buffers = {}; }
   get on() { return !!this.ctx; }
   async start() {
     const ctx = this.ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
     await ctx.resume();
-    const comp = ctx.createDynamicsCompressor();
-    this.master = ctx.createGain(); this.master.gain.value = S.vol.master;
-    this.master.connect(comp).connect(ctx.destination);
+    const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -12; comp.ratio.value = 4;
+    this.master = this.gain(S.vol.master); this.master.connect(comp).connect(ctx.destination);
 
     const len = ctx.sampleRate * 2, buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
     for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
-    this.noise = buf;
+    this.noiseBuf = buf;
 
-    // turbo whistle: two detuned tones + vibrato
+    // compressor whine: blade-pass tone + 2nd harmonic with a little wobble
     this.wg = this.gain(0); this.wg.connect(this.master);
-    this.w1 = ctx.createOscillator(); this.w1.type = 'sine';
-    this.w2 = ctx.createOscillator(); this.w2.type = 'triangle';
-    const w2g = this.gain(0.3);
+    this.w1 = ctx.createOscillator(); this.w2 = ctx.createOscillator();
+    const w2g = this.gain(0.25);
     this.w1.connect(this.wg); this.w2.connect(w2g).connect(this.wg);
-    const lfo = ctx.createOscillator(), lfoG = this.gain(18); lfo.frequency.value = 6.5;
+    const lfo = ctx.createOscillator(), lfoG = this.gain(12); lfo.frequency.value = 11;
     lfo.connect(lfoG); lfoG.connect(this.w1.frequency); lfoG.connect(this.w2.frequency);
 
-    // intake whoosh: band-passed noise
+    // intake whoosh
     const n = ctx.createBufferSource(); n.buffer = buf; n.loop = true;
-    this.hb = ctx.createBiquadFilter(); this.hb.type = 'bandpass'; this.hb.Q.value = 1.4;
-    this.hg = this.gain(0); n.connect(this.hb).connect(this.hg).connect(this.master);
+    this.hb = this.filter('bandpass', 1000, 0.9); this.hg = this.gain(0);
+    n.connect(this.hb).connect(this.hg).connect(this.master);
 
-    // engine rumble: saw + sub square → soft clip → low-pass
-    this.e1 = ctx.createOscillator(); this.e1.type = 'sawtooth';
-    this.e2 = ctx.createOscillator(); this.e2.type = 'square';
-    const e2g = this.gain(0.4), sh = ctx.createWaveShaper(), curve = new Float32Array(1024);
-    for (let i = 0; i < 1024; i++) { const x = i / 512 - 1; curve[i] = Math.tanh(x * 3); }
+    // boxer rumble: firing pulses amplitude-modulated at half rate (unequal-length headers)
+    this.r1 = ctx.createOscillator(); this.r1.type = 'sawtooth';
+    this.r2 = ctx.createOscillator(); this.r2.type = 'triangle';
+    this.amLfo = ctx.createOscillator(); this.amLfo.type = 'square';
+    const am = this.gain(0.6), amDepth = this.gain(0.4), r2g = this.gain(0.5);
+    this.amLfo.connect(amDepth).connect(am.gain);
+    const sh = ctx.createWaveShaper(), curve = new Float32Array(1024);
+    for (let i = 0; i < 1024; i++) curve[i] = Math.tanh((i / 512 - 1) * 2.5);
     sh.curve = curve;
-    this.el = ctx.createBiquadFilter(); this.el.type = 'lowpass'; this.el.Q.value = 2;
-    this.eg = this.gain(0);
-    this.e1.connect(sh); this.e2.connect(e2g).connect(sh); sh.connect(this.el).connect(this.eg).connect(this.master);
+    this.rl = this.filter('lowpass', 300, 1.5); this.rg = this.gain(0);
+    this.r1.connect(am); this.r2.connect(r2g).connect(am);
+    am.connect(sh).connect(this.rl).connect(this.rg).connect(this.master);
 
-    [this.w1, this.w2, lfo, n, this.e1, this.e2].forEach(o => o.start());
+    [this.w1, this.w2, lfo, n, this.r1, this.r2, this.amLfo].forEach(o => o.start());
     if (S.sinkId) await this.setSink(S.sinkId);
+    for (const k of ['bov', 'flutter']) {
+      const ab = await store.get(k);
+      if (ab) { try { this.buffers[k] = await ctx.decodeAudioData(ab.slice(0)); } catch (e) { log('[Sound] Could not read saved ' + k + ' recording.'); } }
+    }
   }
-  gain(v) { const g = this.ctx.createGain(); g.gain.value = v; return g; }
-  async setSink(id) { if (this.ctx && this.ctx.setSinkId) { try { await this.ctx.setSinkId(id); } catch (e) { log('[Sound] Could not use that output: ' + e.message); } } }
   stop() { if (this.ctx) this.ctx.close(); this.ctx = null; }
-  set(param, v) { param.setTargetAtTime(v, this.ctx.currentTime, 0.04); }
+  gain(v) { const g = this.ctx.createGain(); g.gain.value = v; return g; }
+  filter(type, f, q) { const b = this.ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; b.Q.value = q; return b; }
+  noise(t) { const s = this.ctx.createBufferSource(); s.buffer = this.noiseBuf; s.loop = true; s.start(t, Math.random() * 1.5); return s; }
+  env(t, peak, att, dec) {
+    const g = this.gain(0);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(Math.max(peak, 0.0002), t + att);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + att + dec);
+    return g;
+  }
+  async setSink(id) { if (this.ctx && this.ctx.setSinkId) { try { await this.ctx.setSinkId(id); } catch (e) { log('[Sound] Could not use that output: ' + e.message); } } }
+  set(param, v) { param.setTargetAtTime(v, this.ctx.currentTime, 0.05); }
 
   tick(dt) {
     if (!this.ctx) return;
     const now = this.ctx.currentTime, V = S.vol;
     const thN = clamp((live.throttle - thMin) / Math.max(1, 100 - thMin) * 100, 0, 100);
-    const rpmF = clamp((live.rpm - 1500) / 3000, 0, 1);
-    const virt = (thN / 100) * rpmF;
-    const real = clamp(boostKpa() / (S.maxBoostBar * 100), 0, 1);
-    const useReal = S.spoolSrc === 'real' || (S.spoolSrc === 'auto' && mode !== 'sim' && mode !== 'idle' && peakBoost > 15);
-    let target = useReal ? real : virt;
+    const rpmF = clamp((live.rpm - 1800) / 2800, 0, 1);
+    let target = Math.pow(thN / 100, 1.3) * rpmF;           // virtual turbo: spool from throttle × rpm
     if (now < this.force) target = 1;
-    else if (this.force && now >= this.force) { this.force = 0; this.fire(this.spool); this.spool *= 0.25; }
-    this.spool += (target - this.spool) * Math.min(1, dt * (target > this.spool ? 2.2 : 5));
+    else if (this.force) { this.force = 0; this.fire(this.spool); this.spool *= 0.15; }
+    this.spool += (target - this.spool) * Math.min(1, dt * (target > this.spool ? 1.4 : 4.5));
 
-    // blow-off: throttle closed quickly while spooled
+    // valve: throttle closed quickly while spooled
     this.hist.push([now, thN]);
-    while (this.hist.length && now - this.hist[0][0] > 0.5) this.hist.shift();
-    const maxTh = Math.max(...this.hist.map(h => h[1]));
-    if (maxTh - thN > 20 && this.spool > 0.3 && now - this.lastBov > 0.9) {
-      this.fire(this.spool); this.lastBov = now; this.spool *= 0.25; this.hist = [];
+    while (this.hist.length && now - this.hist[0][0] > 0.6) this.hist.shift();
+    let maxTh = 0; for (const h of this.hist) maxTh = Math.max(maxTh, h[1]);
+    if (maxTh - thN > S.trigger && this.spool > 0.25 && now - this.lastValve > 0.8) {
+      this.fire(this.spool); this.lastValve = now; this.spool *= 0.15; this.hist = [];
     }
 
-    const sp = this.spool;
+    const sp = this.spool, f = 2400 + sp * 6200;
     this.set(this.master.gain, V.master);
-    this.set(this.w1.frequency, 1500 + sp * 5500);
-    this.set(this.w2.frequency, (1500 + sp * 5500) * 1.51);
-    this.set(this.wg.gain, Math.pow(sp, 1.6) * 0.09 * V.whistle);
-    this.set(this.hb.frequency, 500 + sp * 3200);
-    this.set(this.hg.gain, sp * (0.3 + 0.7 * thN / 100) * 0.35 * V.whoosh);
-    const fire = Math.max(live.rpm, 0) / 60 * S.cyl / 2;
-    this.set(this.e1.frequency, Math.max(fire, 10));
-    this.set(this.e2.frequency, Math.max(fire / 2, 5));
-    this.set(this.el.frequency, 250 + thN * 14 + live.rpm * 0.12);
-    this.set(this.eg.gain, live.rpm > 300 ? (0.12 + 0.88 * thN / 100) * 0.22 * V.engine : 0);
+    this.set(this.w1.frequency, f); this.set(this.w2.frequency, f * 2.02);
+    this.set(this.wg.gain, Math.pow(sp, 1.8) * 0.07 * V.whistle);
+    this.set(this.hb.frequency, 700 + sp * 3500);
+    this.set(this.hg.gain, sp * (0.35 + 0.65 * thN / 100) * 0.3 * V.whoosh);
+    const fire = Math.max(live.rpm, 400) / 60 * 2;           // 4 cylinders: 2 firings per revolution
+    this.set(this.r1.frequency, fire); this.set(this.r2.frequency, fire / 2); this.set(this.amLfo.frequency, fire / 2);
+    this.set(this.rl.frequency, 180 + thN * 6 + live.rpm * 0.06);
+    this.set(this.rg.gain, live.rpm > 300 ? (0.25 + 0.75 * thN / 100) * 0.35 * V.rumble : 0);
   }
 
-  fire(intensity) {
+  fire(k) {
     if (!this.ctx) return;
-    const style = S.bovStyle;
-    if (style === 'bov' || style === 'both') this.bov(intensity);
-    if (style === 'flutter' || style === 'both') this.flutter(intensity, style === 'both' ? 0.05 : 0);
-  }
-  noiseSrc(t) { const s = this.ctx.createBufferSource(); s.buffer = this.noise; s.loop = true; s.start(t, Math.random() * 1.5); return s; }
-  bov(k) {
-    const ctx = this.ctx, t = ctx.currentTime, v = clamp(k, 0.3, 1) * S.vol.bov;
-    const src = this.noiseSrc(t);
-    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 600;
-    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 0.7;
-    bp.frequency.setValueAtTime(5200, t); bp.frequency.exponentialRampToValueAtTime(1300, t + 0.65);
-    const g = this.gain(0);
-    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(v, t + 0.012); g.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
-    src.connect(hp).connect(bp).connect(g).connect(this.master);
-    src.stop(t + 0.85);
-  }
-  flutter(k, delay) {
-    const ctx = this.ctx, t = ctx.currentTime + delay, v = clamp(k, 0.3, 1) * S.vol.bov;
-    const src = this.noiseSrc(t);
-    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 850; bp.Q.value = 1.8;
-    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2200;
-    const g = this.gain(0);
-    let tt = t;
-    for (let i = 0; i < 11; i++) {
-      const a = v * 1.4 * (1 - i / 12);
-      g.gain.setValueAtTime(0.0001, tt); g.gain.linearRampToValueAtTime(a, tt + 0.007); g.gain.exponentialRampToValueAtTime(0.0005, tt + 0.032);
-      tt += 0.042 + i * 0.006;
+    k = clamp(k, 0.3, 1);
+    const st = S.valveStyle, t = this.ctx.currentTime + 0.01;
+    if (st === 'flutter' || st === 'both') { if (this.buffers.flutter) this.playSample(this.buffers.flutter, k, t); else this.flutter(k, t); }
+    if (st === 'bov' || st === 'both') {
+      const kb = st === 'both' ? k * 0.7 : k, tb = st === 'both' ? t + 0.12 : t;
+      if (this.buffers.bov) this.playSample(this.buffers.bov, kb, tb); else this.bov(kb, tb);
     }
-    src.connect(bp).connect(lp).connect(g).connect(this.master);
-    src.stop(tt + 0.05);
+  }
+  playSample(buf, k, t) {
+    const s = this.ctx.createBufferSource(); s.buffer = buf; s.playbackRate.value = 0.92 + 0.16 * k;
+    s.connect(this.gain(S.vol.valve * (0.4 + 0.6 * k))).connect(this.master); s.start(t);
+  }
+  // Blow-off valve: valve "pop", falling hiss, hollow pipe resonance.
+  bov(k, t) {
+    const ctx = this.ctx, v = k * S.vol.valve, dur = 0.4 + 0.6 * k, out = this.gain(1);
+    out.connect(this.master);
+    { const s = this.noise(t), hp = this.filter('highpass', 2500, 0.7), g = this.env(t, v * 0.7, 0.002, 0.045);
+      s.connect(hp).connect(g).connect(out); s.stop(t + 0.07); }
+    { const s = this.noise(t), hp = this.filter('highpass', 600, 0.7), bp = this.filter('bandpass', 6500, 0.8), pk = this.filter('peaking', 3200, 1.5);
+      pk.gain.value = 7;
+      bp.frequency.setValueAtTime(6500, t); bp.frequency.exponentialRampToValueAtTime(1700, t + dur);
+      const g = this.gain(0);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(v, 0.0002), t + 0.012);
+      g.gain.exponentialRampToValueAtTime(Math.max(v * 0.55, 0.0002), t + 0.15); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      s.connect(hp).connect(bp).connect(pk).connect(g).connect(out); s.stop(t + dur + 0.05); }
+    { const s = this.noise(t), bp = this.filter('bandpass', 1400, 1), dl = ctx.createDelay(0.05), fb = this.gain(0.55);
+      dl.delayTime.value = 0.0012;
+      const g = this.env(t, v * 0.4, 0.02, dur * 0.8);
+      s.connect(bp).connect(dl); dl.connect(fb).connect(dl); dl.connect(g).connect(out); s.stop(t + dur);
+      setTimeout(() => { try { fb.disconnect(); } catch (e) {} }, (dur + 0.6) * 1000); }
+  }
+  // Compressor surge flutter: fast "tu" chirps that slow down and fade as the turbo winds down.
+  flutter(k, t) {
+    const ctx = this.ctx, n = Math.round(6 + k * 9), out = this.gain(S.vol.valve);
+    out.connect(this.master);
+    let tt = t, gap = 0.032, f = 1500 + k * 500;
+    for (let i = 0; i < n; i++) {
+      const a = Math.max(0.0003, k * Math.pow(1 - i / (n + 1), 1.4) * (0.85 + Math.random() * 0.3));
+      const o = ctx.createOscillator(); o.type = 'triangle';
+      o.frequency.setValueAtTime(f * 1.3, tt); o.frequency.exponentialRampToValueAtTime(f * 0.75, tt + 0.028);
+      o.connect(this.env(tt, a * 0.28, 0.003, 0.035)).connect(out); o.start(tt); o.stop(tt + 0.045);
+      const s = this.noise(tt);
+      s.connect(this.filter('bandpass', f, 5)).connect(this.env(tt, a * 1.1, 0.002, 0.04)).connect(out); s.stop(tt + 0.05);
+      const s2 = this.noise(tt);
+      s2.connect(this.filter('lowpass', 260, 1)).connect(this.env(tt, a * 0.9, 0.003, 0.03)).connect(out); s2.stop(tt + 0.04);
+      tt += gap * (0.9 + Math.random() * 0.2); gap *= 1.08; f *= 0.97;
+    }
   }
 }
 const sound = new TurboSound();
 
-async function toggleSound() {
-  if (sound.on) { sound.stop(); }
-  else {
-    try { await sound.start(); log('[Sound] Turbo sound ON – playing through ' + ($('sink').selectedOptions[0] || {}).text + '.'); await listOutputs(); }
-    catch (e) { log('[Sound] ' + e.message); }
-  }
-  $('btnSound').textContent = '🔊 Turbo sound: ' + (sound.on ? 'ON' : 'OFF');
+// ---------------------------------------------------------------- output (speaker) UI
+function outLabel() {
+  const o = $('sink').selectedOptions[0];
+  return S.sinkId && o && !$('sink').hidden ? o.text : 'phone audio';
+}
+function updateSoundUI() {
+  $('btnSound').textContent = sound.on ? 'Stop turbo sound' : 'Start turbo sound';
   $('btnSound').classList.toggle('on', sound.on);
   $('soundState').textContent = sound.on ? 'on' : 'off';
-  $('soundState').classList.toggle('on', sound.on);
+  $('soundState').className = 'tag' + (sound.on ? ' on' : '');
+  $('outDev').textContent = sound.on ? outLabel() : '–';
+  if (sound.on) setOut(outLabel(), 'ok'); else setOut('sound off', 'off');
 }
+async function startSound() {
+  if (sound.on) return true;
+  try { await sound.start(); } catch (e) { log('[Sound] ' + e.message); sound.stop(); updateSoundUI(); return false; }
+  await listOutputs();
+  updateSoundUI();
+  log('[Sound] Virtual turbo ON – playing through ' + outLabel() + '.');
+  return true;
+}
+async function toggleSound() { if (sound.on) { sound.stop(); updateSoundUI(); } else await startSound(); }
 
 async function listOutputs() {
   const sel = $('sink');
-  if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices || !(window.AudioContext && AudioContext.prototype.setSinkId)) {
-    sel.title = 'This browser always uses the system output – choose the speaker in your phone/PC Bluetooth settings.'; return;
+  const canSink = window.AudioContext && AudioContext.prototype.setSinkId && navigator.mediaDevices && navigator.mediaDevices.enumerateDevices;
+  $('btnPickOut').hidden = !(navigator.mediaDevices && navigator.mediaDevices.selectAudioOutput);
+  if (!canSink) { sel.hidden = true; return; }
+  try {
+    const devs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'audiooutput' && d.deviceId && d.deviceId !== 'default');
+    sel.innerHTML = '<option value="">System default output</option>';
+    devs.forEach((d, i) => { const o = document.createElement('option'); o.value = d.deviceId; o.textContent = d.label || 'Speaker ' + (i + 1); sel.appendChild(o); });
+    sel.value = devs.some(d => d.deviceId === S.sinkId) ? S.sinkId : '';
+    sel.hidden = devs.length === 0;
+  } catch (e) { sel.hidden = true; }
+}
+if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
+  navigator.mediaDevices.addEventListener('devicechange', () => { listOutputs().then(updateSoundUI); });
+}
+
+async function loadSample(kind, file) {
+  if (!file) return;
+  const ab = await file.arrayBuffer();
+  if (sound.on) {
+    try { sound.buffers[kind] = await sound.ctx.decodeAudioData(ab.slice(0)); }
+    catch (e) { log('[Sound] That file could not be decoded – try MP3 or WAV.'); return; }
   }
-  const devs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'audiooutput' && d.deviceId !== 'default');
-  sel.innerHTML = '<option value="">System default</option>' +
-    devs.map((d, i) => `<option value="${d.deviceId}">${(d.label || 'Speaker ' + (i + 1)).replace(/</g, '')}</option>`).join('');
-  sel.value = devs.some(d => d.deviceId === S.sinkId) ? S.sinkId : '';
+  await store.set(kind, ab); await store.set(kind + '-name', file.name);
+  log('[Sound] Using your recording “' + file.name + '” for the ' + kind + '.');
+  showSampleNames();
+}
+async function clearSample(kind) {
+  await store.del(kind); await store.del(kind + '-name'); delete sound.buffers[kind];
+  showSampleNames();
+}
+async function showSampleNames() {
+  for (const k of ['bov', 'flutter']) {
+    const name = await store.get(k + '-name'), K = k === 'bov' ? 'Bov' : 'Flutter';
+    $('name' + K).textContent = name ? 'Using your recording: ' + name : 'Using the built-in synthesized sound.';
+    $('clr' + K).hidden = !name;
+  }
 }
 
 // ================================================================= DTC diagnostics
 const DTC_DB = {
-  P0011: 'Camshaft position timing over-advanced (Bank 1)', P0016: 'Crankshaft/camshaft position correlation',
-  P0030: 'O2 sensor heater circuit (B1S1)', P0101: 'MAF sensor range/performance', P0102: 'MAF circuit low', P0106: 'MAP sensor range/performance',
+  P0011: 'Camshaft timing over-advanced (Bank 1)', P0016: 'Crankshaft/camshaft position correlation',
+  P0031: 'A/F sensor heater circuit low (B1S1)', P0032: 'A/F sensor heater circuit high (B1S1)', P0037: 'O2 sensor heater circuit low (B1S2)',
+  P0101: 'MAF sensor range/performance', P0102: 'MAF circuit low', P0106: 'MAP sensor range/performance', P0107: 'MAP sensor circuit low',
   P0113: 'Intake air temp sensor circuit high', P0117: 'Coolant temp sensor circuit low', P0118: 'Coolant temp sensor circuit high',
-  P0128: 'Coolant thermostat below regulating temperature', P0130: 'O2 sensor circuit (B1S1)', P0133: 'O2 sensor slow response (B1S1)',
+  P0122: 'Throttle position sensor A circuit low', P0123: 'Throttle position sensor A circuit high', P0121: 'Throttle position sensor A range/performance',
+  P0128: 'Thermostat – engine not reaching temperature', P0130: 'O2/AF sensor circuit (B1S1)', P0133: 'O2/AF sensor slow response (B1S1)',
+  P0137: 'O2 sensor low voltage (B1S2)', P0138: 'O2 sensor high voltage (B1S2)', P0139: 'O2 sensor slow response (B1S2)',
   P0171: 'System too lean (Bank 1)', P0172: 'System too rich (Bank 1)', P0174: 'System too lean (Bank 2)', P0175: 'System too rich (Bank 2)',
-  P0234: 'Turbo/supercharger overboost condition', P0299: 'Turbo/supercharger underboost', P0236: 'Turbo boost sensor A range/performance',
-  P0243: 'Turbo wastegate solenoid A', P0300: 'Random/multiple cylinder misfire', P0301: 'Cylinder 1 misfire', P0302: 'Cylinder 2 misfire',
-  P0303: 'Cylinder 3 misfire', P0304: 'Cylinder 4 misfire', P0305: 'Cylinder 5 misfire', P0306: 'Cylinder 6 misfire',
-  P0325: 'Knock sensor 1 circuit', P0335: 'Crankshaft position sensor A circuit', P0340: 'Camshaft position sensor circuit',
-  P0401: 'EGR flow insufficient', P0402: 'EGR flow excessive', P0420: 'Catalyst efficiency below threshold (Bank 1)', P0430: 'Catalyst efficiency below threshold (Bank 2)',
-  P0440: 'EVAP system malfunction', P0442: 'EVAP small leak', P0455: 'EVAP large leak', P0456: 'EVAP very small leak',
-  P0500: 'Vehicle speed sensor', P0505: 'Idle air control system', P0507: 'Idle RPM higher than expected', P0562: 'System voltage low',
-  P0700: 'Transmission control system (check TCM codes)', P2187: 'System too lean at idle (Bank 1)', P2263: 'Turbo boost system performance',
-  P2135: 'Throttle position sensor A/B correlation', P0121: 'Throttle position sensor A range/performance', P0606: 'ECM processor fault',
+  P0300: 'Random/multiple cylinder misfire', P0301: 'Cylinder 1 misfire', P0302: 'Cylinder 2 misfire', P0303: 'Cylinder 3 misfire', P0304: 'Cylinder 4 misfire',
+  P0327: 'Knock sensor circuit low', P0328: 'Knock sensor circuit high', P0335: 'Crankshaft position sensor circuit', P0340: 'Camshaft position sensor circuit',
+  P0420: 'Catalyst efficiency below threshold (Bank 1)', P0440: 'EVAP system malfunction', P0441: 'EVAP purge flow incorrect',
+  P0442: 'EVAP small leak', P0455: 'EVAP large leak', P0456: 'EVAP very small leak', P0457: 'EVAP leak – fuel cap loose/off',
+  P0458: 'EVAP purge valve circuit low', P0459: 'EVAP purge valve circuit high', P0500: 'Vehicle speed sensor', P0505: 'Idle control system',
+  P0506: 'Idle RPM lower than expected', P0507: 'Idle RPM higher than expected', P0562: 'System voltage low', P0600: 'ECU communication fault',
+  P0700: 'Transmission control system (read TCM codes)', P0851: 'Neutral switch circuit low', P0852: 'Neutral switch circuit high',
+  P2096: 'Post-catalyst fuel trim too lean', P2097: 'Post-catalyst fuel trim too rich', P2101: 'Throttle actuator control motor range',
+  P2135: 'Throttle position sensor A/B correlation', P2187: 'System too lean at idle', P2188: 'System too rich at idle',
 };
 function decodeDTC(a, b) { return ('PCBU'[a >> 6] + ((a >> 4) & 3) + (a & 15).toString(16) + b.toString(16).padStart(2, '0')).toUpperCase(); }
 function parseDTCs(lines, m) {
@@ -654,7 +849,7 @@ function parseDTCs(lines, m) {
 }
 function renderDTCs(stored, pending, milOn, count) {
   $('mil').textContent = milOn == null ? 'MIL –' : 'MIL ' + (milOn ? 'ON' : 'OFF') + (count != null ? ' · ' + count : '');
-  $('mil').classList.toggle('on', !!milOn);
+  $('mil').className = 'tag' + (milOn ? ' warn' : '');
   const box = $('dtcs');
   const all = stored.map(c => [c, 'Stored']).concat(pending.filter(c => !stored.includes(c)).map(c => [c, 'Pending']));
   if (!all.length) { box.innerHTML = '<p class="note" style="color:#4ade80">✓ No trouble codes found.</p>'; return; }
@@ -662,26 +857,26 @@ function renderDTCs(stored, pending, milOn, count) {
   for (const [c, kind] of all) {
     const el = document.createElement('div'); el.className = 'dtc';
     el.innerHTML = `<em>${kind}</em><b>${c}</b><div></div>`;
-    el.querySelector('div').textContent = DTC_DB[c] || (c[1] === '1' ? 'Manufacturer-specific code – look up for your make.' : 'Generic code – see OBD-II code list.');
+    el.querySelector('div').textContent = DTC_DB[c] || (c[1] === '1' ? 'Subaru-specific code – look up in the Subaru service manual.' : 'Generic code – see an OBD-II code list.');
     box.appendChild(el);
   }
 }
 async function scanDTCs() {
-  if (mode === 'sim') { log('[Sim] Mode 03/07 → sample codes'); renderDTCs(['P0420'], ['P0171'], true, 1); return; }
-  if (!elm) return log('[DTC] Connect to the car first.');
+  if (mode === 'sim') { log('[Demo] Mode 03/07 → sample codes'); renderDTCs(['P0420'], ['P0171'], true, 1); return; }
+  if (!elm) return log('[DTC] Connect the scanner first.');
   try {
     log('[DTC] Reading status (0101), stored (03) and pending (07) codes…');
     const st = parsePid(await elm.send('0101', 3000), '01');
     const stored = parseDTCs(await elm.send('03', 6000), '43');
-    const pending = parseDTCs(await elm.send('07', 6000), '47').filter(Boolean);
+    const pending = parseDTCs(await elm.send('07', 6000), '47');
     renderDTCs(stored, pending, st ? !!(st[0] & 0x80) : null, st ? st[0] & 0x7f : null);
     log('[DTC] ' + stored.length + ' stored, ' + pending.length + ' pending.');
   } catch (e) { log('[DTC] ' + e.message); }
 }
 async function clearDTCs() {
-  if (!confirm('Clear all trouble codes and turn off the check-engine light?\n\nFreeze-frame data and readiness monitors will reset. Do this with ignition ON and engine OFF.')) return;
-  if (mode === 'sim') { renderDTCs([], [], false, 0); log('[Sim] Codes cleared.'); return; }
-  if (!elm) return log('[DTC] Connect to the car first.');
+  $('clearConfirm').hidden = true;
+  if (mode === 'sim') { renderDTCs([], [], false, 0); log('[Demo] Codes cleared.'); return; }
+  if (!elm) return log('[DTC] Connect the scanner first.');
   try {
     const r = await elm.send('04', 6000);
     if (r.some(l => l.replace(/\s/g, '').startsWith('44'))) { log('[DTC] Codes cleared.'); renderDTCs([], [], false, 0); }
@@ -702,78 +897,113 @@ async function sendCommand() {
     if (c.startsWith('AT')) log(c === 'ATRV' ? live.volt.toFixed(1) + 'V' : 'OK');
     else if (c === '010C') { const v = Math.round(live.rpm * 4); log('410C' + h(v >> 8) + h(v & 255) + '  (' + Math.round(live.rpm) + ' rpm)'); }
     else if (c === '010D') log('410D' + h(Math.round(live.speed)) + '  (' + Math.round(live.speed) + ' km/h)');
-    else if (c === '010B') log('410B' + h(Math.round(clamp(live.map, 0, 255))) + '  (' + Math.round(live.map) + ' kPa)');
     else log('NO DATA');
   } else log('Not connected.');
 }
 
-// ================================================================= drawing
+// ================================================================= Hawkeye-style dials
 function setupCanvas(cv) {
   const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
-  const w = Math.round(r.width * dpr), h = Math.round(r.height * dpr);
+  const w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
   if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
   const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
   return [c, r.width, r.height];
 }
-function drawGauge(cv, val, o) {
+function drawDial(cv, val, o) {
   const [c, w, h] = setupCanvas(cv);
+  if (w < 20) return;
   c.clearRect(0, 0, w, h);
-  const cx = w / 2, cy = h / 2, R = Math.min(w, h) / 2 - 8, a0 = Math.PI * 0.75, a1 = Math.PI * 2.25;
+  const PI = Math.PI, cx = w / 2, cy = h / 2, R = Math.min(w, h) / 2 - 3, fr = R * 0.92;
+  const a0 = o.a0 != null ? o.a0 : 0.75 * PI, a1 = o.a1 != null ? o.a1 : 2.25 * PI;
   const ang = v => a0 + (clamp(v, o.min, o.max) - o.min) / (o.max - o.min) * (a1 - a0);
-  const lw = R * 0.07;
-  c.lineCap = 'round'; c.lineWidth = lw;
-  c.strokeStyle = '#1c2330'; c.beginPath(); c.arc(cx, cy, R, a0, a1); c.stroke();
-  if (o.red != null) { c.strokeStyle = '#ef444455'; c.beginPath(); c.arc(cx, cy, R, ang(o.red), a1); c.stroke(); }
-  const s = ang(o.zero != null ? o.zero : o.min), e = ang(val);
-  c.strokeStyle = o.color; c.shadowColor = o.color; c.shadowBlur = 12;
-  c.beginPath(); c.arc(cx, cy, R, Math.min(s, e), Math.max(s, e) + 0.0001); c.stroke();
-  c.shadowBlur = 0;
-  c.lineCap = 'butt';
-  c.font = `600 ${Math.max(9, R * 0.11)}px system-ui,sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
-  for (let v = o.min, i = 0; v <= o.max + 1e-9; v += o.step / 2, i++) {
-    const a = ang(v), major = i % 2 === 0, ca = Math.cos(a), sa = Math.sin(a);
-    c.strokeStyle = o.red != null && v >= o.red ? '#ef4444' : major ? '#94a3b8' : '#475569';
-    c.lineWidth = major ? 2 : 1;
-    c.beginPath(); c.moveTo(cx + ca * (R - lw), cy + sa * (R - lw)); c.lineTo(cx + ca * (R - lw - (major ? R * 0.1 : R * 0.05)), cy + sa * (R - lw - (major ? R * 0.1 : R * 0.05))); c.stroke();
-    if (major) { c.fillStyle = '#94a3b8'; c.fillText(o.fmt(v), cx + ca * R * 0.66, cy + sa * R * 0.66); }
+  // chrome bezel + black face
+  let g = c.createLinearGradient(cx - R, cy - R, cx + R, cy + R);
+  g.addColorStop(0, '#dadde1'); g.addColorStop(0.45, '#5b5f66'); g.addColorStop(0.55, '#33363b'); g.addColorStop(1, '#b9bdc3');
+  c.beginPath(); c.arc(cx, cy, R, 0, 2 * PI); c.fillStyle = g; c.fill();
+  g = c.createRadialGradient(cx, cy - fr * 0.35, fr * 0.05, cx, cy, fr);
+  g.addColorStop(0, '#1d1f23'); g.addColorStop(0.7, '#0a0b0d'); g.addColorStop(1, '#020203');
+  c.beginPath(); c.arc(cx, cy, fr, 0, 2 * PI); c.fillStyle = g; c.fill();
+  // red zone
+  if (o.red != null && o.red < o.max) {
+    c.beginPath(); c.arc(cx, cy, fr * 0.91, ang(o.red), a1);
+    c.strokeStyle = '#c81e14'; c.lineWidth = fr * 0.07; c.lineCap = 'butt'; c.stroke();
   }
-  const a = ang(val);
-  c.strokeStyle = '#f8fafc'; c.lineWidth = 3; c.lineCap = 'round';
-  c.beginPath(); c.moveTo(cx - Math.cos(a) * R * 0.08, cy - Math.sin(a) * R * 0.08); c.lineTo(cx + Math.cos(a) * R * 0.82, cy + Math.sin(a) * R * 0.82); c.stroke();
-  c.fillStyle = o.color; c.beginPath(); c.arc(cx, cy, R * 0.06, 0, Math.PI * 2); c.fill();
+  // ticks + numerals
+  c.textAlign = 'center'; c.textBaseline = 'middle'; c.lineCap = 'butt';
+  const steps = Math.round((o.max - o.min) / o.minor);
+  for (let i = 0; i <= steps; i++) {
+    const v = o.min + i * o.minor, a = ang(v), ca = Math.cos(a), sa = Math.sin(a);
+    const q = (v - o.min) / o.major, major = Math.abs(q - Math.round(q)) < 1e-6;
+    const red = o.red != null && v >= o.red, r1 = fr * 0.95, r2 = fr * (major ? 0.8 : 0.88);
+    c.strokeStyle = red ? '#ff3b30' : '#f2f2f2'; c.lineWidth = major ? Math.max(2, fr * 0.025) : Math.max(1, fr * 0.01);
+    c.beginPath(); c.moveTo(cx + ca * r1, cy + sa * r1); c.lineTo(cx + ca * r2, cy + sa * r2); c.stroke();
+    if (major && o.fmt) {
+      c.fillStyle = red ? '#ff3b30' : '#f5f5f5';
+      c.font = `700 ${Math.max(8, fr * (o.numSize || 0.15))}px "Arial Narrow",Arial,sans-serif`;
+      c.fillText(o.fmt(v), cx + ca * fr * 0.64, cy + sa * fr * 0.64);
+    }
+  }
+  if (o.labels) for (const [v, txt, col] of o.labels) {
+    const a = ang(v); c.fillStyle = col || '#f5f5f5'; c.font = `700 ${Math.max(9, fr * 0.2)}px Arial,sans-serif`;
+    c.fillText(txt, cx + Math.cos(a) * fr * 0.62, cy + Math.sin(a) * fr * 0.62);
+  }
+  if (o.title) {
+    c.fillStyle = '#9aa0a8'; c.font = `600 ${Math.max(8, fr * (o.titleSize || 0.075))}px Arial,sans-serif`;
+    c.fillText(o.title, cx, cy + fr * (o.titleY != null ? o.titleY : -0.32));
+  }
+  if (o.digital != null) {
+    const dw = fr * 0.64, dh = fr * 0.21, dy = cy + fr * 0.45;
+    c.fillStyle = '#0b0703'; c.fillRect(cx - dw / 2, dy - dh / 2, dw, dh);
+    c.strokeStyle = '#2a2116'; c.lineWidth = 1; c.strokeRect(cx - dw / 2, dy - dh / 2, dw, dh);
+    c.fillStyle = '#ffb347'; c.shadowColor = 'rgba(255,170,60,.6)'; c.shadowBlur = 6;
+    c.font = `700 ${fr * 0.16}px ui-monospace,Consolas,monospace`; c.fillText(o.digital, cx, dy + 1); c.shadowBlur = 0;
+  }
+  // needle with glow
+  c.save(); c.translate(cx, cy); c.rotate(ang(val));
+  c.shadowColor = 'rgba(255,70,20,.85)'; c.shadowBlur = fr * 0.06;
+  c.beginPath(); c.moveTo(-fr * 0.14, -fr * 0.022); c.lineTo(fr * 0.9, -fr * 0.006); c.lineTo(fr * 0.9, fr * 0.006); c.lineTo(-fr * 0.14, fr * 0.022); c.closePath();
+  c.fillStyle = '#ff4a1c'; c.fill(); c.restore();
+  g = c.createRadialGradient(cx - fr * 0.02, cy - fr * 0.02, 1, cx, cy, fr * 0.09);
+  g.addColorStop(0, '#5a5e64'); g.addColorStop(1, '#0c0d0f');
+  c.beginPath(); c.arc(cx, cy, fr * 0.08, 0, 2 * PI); c.fillStyle = g; c.fill(); c.strokeStyle = '#8d9299'; c.lineWidth = 1; c.stroke();
 }
 
-// ---------------------------------------------------------------- tiles
-const TILES = [
-  ['coolant', 'Coolant', '#f59e0b', () => fmtTemp(live.coolant), () => live.coolant == null ? 0 : (live.coolant + 40) / 160],
-  ['iat', 'Intake air', '#38bdf8', () => fmtTemp(live.iat), () => live.iat == null ? 0 : (live.iat + 40) / 120],
-  ['throttle', 'Throttle', '#22c55e', () => Math.round(live.throttle) + ' %', () => live.throttle / 100],
-  ['load', 'Engine load', '#06b6d4', () => Math.round(live.load) + ' %', () => live.load / 100],
-  ['fuel', 'Fuel level', '#14b8a6', () => live.fuel == null ? '–' : Math.round(live.fuel) + ' %', () => (live.fuel || 0) / 100],
-  ['volt', 'Battery', '#eab308', () => live.volt == null ? '–' : live.volt.toFixed(1) + ' V', () => live.volt == null ? 0 : clamp((live.volt - 11) / 4, 0, 1)],
+// ---------------------------------------------------------------- shift lights + LCD strip
+$('leds').innerHTML = '<i></i>'.repeat(10);
+function updateLeds() {
+  const el = $('leds'), on = clamp(Math.ceil((live.rpm - (S.shiftRpm - 2000)) / 200), 0, 10);
+  el.classList.toggle('flash', live.rpm >= S.shiftRpm);
+  [...el.children].forEach((d, i) => d.className = i < on ? (i < 5 ? 'g' : i < 8 ? 'y' : 'r') : '');
+}
+const LCD = [
+  ['gear', 'GEAR (EST.)', () => gearEstimate()],
+  ['thr', 'THROTTLE', () => Math.round(live.throttle) + '%'],
+  ['load', 'LOAD', () => Math.round(live.load) + '%'],
+  ['vac', 'VACUUM', () => vac(vacuumKpa())],
+  ['iat', 'INTAKE AIR', () => tmp(live.iat)],
+  ['maf', 'MAF', () => live.maf == null ? '–' : live.maf.toFixed(1) + ' g/s'],
+  ['adv', 'TIMING', () => live.timing == null ? '–' : live.timing.toFixed(1) + '°'],
+  ['volt', 'BATTERY', () => live.volt == null ? '–' : live.volt.toFixed(1) + ' V'],
 ];
-$('tiles').innerHTML = TILES.map(([k, l, col]) =>
-  `<div class="card tile"><div class="l">${l}</div><div class="v" id="t_${k}">–</div><div class="bar"><div id="b_${k}" style="background:${col}"></div></div></div>`).join('');
-function updateTiles() {
-  for (const [k, , , val, pct] of TILES) { $('t_' + k).textContent = val(); $('b_' + k).style.width = clamp(pct(), 0, 1) * 100 + '%'; }
-  const pb = fmtBoost(peakBoost);
-  $('vPeak').textContent = 'peak ' + (metric() ? pb.toFixed(2) + ' bar' : pb.toFixed(1) + ' psi');
+$('lcd').innerHTML = LCD.map(([k, l]) => `<div><span>${l}</span><b id="l_${k}">–</b></div>`).join('');
+function updateLcd() {
+  for (const [k, , f] of LCD) $('l_' + k).textContent = f();
   $('spoolBar').style.width = sound.spool * 100 + '%';
 }
 
 // ---------------------------------------------------------------- chart
 const HMAX = 120;   // 30 s at 4 Hz
 const SERIES = [
-  { k: 'rpm', name: 'RPM', c: '#22c55e', on: true, get: () => live.rpm, range: () => [0, rpmMax()], fmt: v => Math.round(v) },
-  { k: 'boost', name: 'Boost', c: '#a855f7', on: true, get: () => fmtBoost(boostKpa()), range: () => { const r = boostRange(); return [r.min, r.max]; }, fmt: v => v.toFixed(metric() ? 2 : 1) },
-  { k: 'speed', name: 'Speed', c: '#3b82f6', on: true, get: () => fmtSpeed(live.speed), range: () => [0, speedMax()], fmt: v => Math.round(v) },
-  { k: 'throttle', name: 'Throttle', c: '#f59e0b', on: true, get: () => live.throttle, range: () => [0, 100], fmt: v => Math.round(v) + '%' },
+  { name: 'RPM', c: '#ff4a1c', on: true, get: () => live.rpm, range: () => [0, 8000], fmt: v => Math.round(v) },
+  { name: 'Speed', c: '#5b8def', on: true, get: () => spd(live.speed), range: () => [0, speedMax()], fmt: v => Math.round(v) },
+  { name: 'Throttle', c: '#ffb347', on: true, get: () => live.throttle, range: () => [0, 100], fmt: v => Math.round(v) + '%' },
+  { name: 'Load', c: '#4ade80', on: true, get: () => live.load, range: () => [0, 100], fmt: v => Math.round(v) + '%' },
 ];
 SERIES.forEach(s => s.data = []);
-$('chips').innerHTML = SERIES.map((s, i) => `<button class="chip on" data-i="${i}"><i style="background:${s.c}"></i><span>${s.name}</span></button>`).join('');
+$('chips').innerHTML = SERIES.map((s, i) => `<button class="chip" data-i="${i}"><i style="background:${s.c}"></i><span>${s.name}</span></button>`).join('');
 $('chips').addEventListener('click', e => {
   const b = e.target.closest('.chip'); if (!b) return;
-  const s = SERIES[b.dataset.i]; s.on = !s.on; b.classList.toggle('on', s.on); b.style.opacity = s.on ? 1 : 0.45;
+  const s = SERIES[b.dataset.i]; s.on = !s.on; b.style.opacity = s.on ? 1 : 0.4;
 });
 function pushHistory() {
   for (const s of SERIES) { s.data.push(s.get()); if (s.data.length > HMAX) s.data.shift(); }
@@ -782,15 +1012,14 @@ function pushHistory() {
 function drawChart() {
   const [c, w, h] = setupCanvas($('chart'));
   c.clearRect(0, 0, w, h);
-  c.strokeStyle = '#1c2330'; c.lineWidth = 1;
+  c.strokeStyle = '#1c1f24'; c.lineWidth = 1;
   for (let i = 0; i <= 4; i++) { const y = 4 + (h - 8) * i / 4; c.beginPath(); c.moveTo(0, y); c.lineTo(w, y); c.stroke(); }
   for (const s of SERIES) {
     if (!s.on || s.data.length < 2) continue;
     const [lo, hi] = s.range();
     c.strokeStyle = s.c; c.lineWidth = 2; c.lineJoin = 'round'; c.beginPath();
     s.data.forEach((v, i) => {
-      const x = (HMAX - s.data.length + i) / (HMAX - 1) * w;
-      const y = 4 + (h - 8) * (1 - clamp((v - lo) / (hi - lo), 0, 1));
+      const x = (HMAX - s.data.length + i) / (HMAX - 1) * w, y = 4 + (h - 8) * (1 - clamp((v - lo) / (hi - lo), 0, 1));
       i ? c.lineTo(x, y) : c.moveTo(x, y);
     });
     c.stroke();
@@ -798,27 +1027,26 @@ function drawChart() {
 }
 
 // ---------------------------------------------------------------- main loops
-const disp = { rpm: 0, speed: 0, boost: 0 };
-let lastFrame = performance.now(), lastTiles = 0;
+const disp = { rpm: 0, speed: 0, fuel: 0, temp: 40 };
+let lastFrame = performance.now(), lastLcd = 0;
 function frame(t) {
   const dt = Math.min(0.1, (t - lastFrame) / 1000); lastFrame = t;
   if (mode === 'sim') simStep(dt);
-  if (mode !== 'idle') peakBoost = Math.max(peakBoost, boostKpa());
   const k = Math.min(1, dt * 12);
   disp.rpm += (live.rpm - disp.rpm) * k;
   disp.speed += (live.speed - disp.speed) * k;
-  disp.boost += (boostKpa() - disp.boost) * k;
+  disp.fuel += ((live.fuel == null ? 0 : live.fuel) - disp.fuel) * dt * 2;
+  disp.temp += ((live.coolant == null ? 40 : live.coolant) - disp.temp) * dt * 2;
 
-  const br = boostRange(), bVal = fmtBoost(disp.boost);
-  drawGauge($('gRpm'), disp.rpm, { min: 0, max: rpmMax(), step: 1000, red: S.redline, color: '#22c55e', fmt: v => v / 1000 });
-  drawGauge($('gBoost'), bVal, { min: br.min, max: br.max, step: br.step, zero: 0, red: fmtBoost(S.maxBoostBar * 100), color: '#a855f7', fmt: br.fmt });
-  drawGauge($('gSpeed'), fmtSpeed(disp.speed), { min: 0, max: speedMax(), step: metric() ? 40 : 20, color: '#3b82f6', fmt: v => v });
-  $('vRpm').textContent = Math.round(disp.rpm);
-  $('vBoost').textContent = bVal.toFixed(metric() ? 2 : 1);
-  $('vSpeed').textContent = Math.round(fmtSpeed(disp.speed));
-  $('shift').classList.toggle('lit', live.rpm >= S.shiftRpm);
-
-  if (t - lastTiles > 100) { updateTiles(); lastTiles = t; }
+  const PI = Math.PI;
+  drawDial($('gTach'), disp.rpm, { min: 0, max: 8000, major: 1000, minor: 250, red: S.redline, fmt: v => v / 1000, numSize: 0.16,
+    title: 'x1000 r/min', digital: String(Math.round(disp.rpm)).padStart(4, ' ') });
+  drawDial($('gSpeed'), spd(disp.speed), { min: 0, max: speedMax(), major: 20, minor: 10, fmt: v => v, numSize: metric() ? 0.1 : 0.12,
+    title: metric() ? 'km/h' : 'MPH', digital: String(Math.round(spd(disp.speed))).padStart(3, ' ') });
+  drawDial($('gFuel'), disp.fuel, { min: 0, max: 100, major: 50, minor: 25, a0: PI * 1.1, a1: PI * 1.9, labels: [[0, 'E', '#ff3b30'], [100, 'F']], title: 'FUEL', titleY: 0.42, titleSize: 0.14 });
+  drawDial($('gTemp'), disp.temp, { min: 40, max: 130, major: 45, minor: 15, a0: PI * 1.1, a1: PI * 1.9, red: 115, labels: [[40, 'C'], [130, 'H', '#ff3b30']], title: 'TEMP', titleY: 0.42, titleSize: 0.14 });
+  updateLeds();
+  if (t - lastLcd > 120) { updateLcd(); lastLcd = t; }
   drawChart();
   requestAnimationFrame(frame);
 }
@@ -826,63 +1054,75 @@ setInterval(pushHistory, 250);
 let lastTick = performance.now();
 setInterval(() => { const n = performance.now(); sound.tick((n - lastTick) / 1000); lastTick = n; }, 30);
 
-// ---------------------------------------------------------------- screen wake lock (keeps phone screen on)
+// ---------------------------------------------------------------- screen wake lock (keeps the phone screen on)
 let wakeLock = null;
 async function keepAwake() { try { if (navigator.wakeLock && !wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => wakeLock = null); } } catch (e) {} }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && mode !== 'idle') keepAwake(); });
 
 // ---------------------------------------------------------------- UI wiring
-function updateConnectBtn() {
-  const b = $('btnConnect');
-  b.textContent = mode === 'idle' ? 'Connect' : 'Disconnect';
-  b.className = 'btn ' + (mode === 'idle' ? 'primary' : 'danger');
-}
-function applyUnits() {
-  $('btnUnits').textContent = metric() ? 'Metric (°C · km/h · bar)' : 'Imperial (°F · mph · psi)';
-  $('uSpeed').textContent = metric() ? 'km/h' : 'mph';
-  $('uBoost').textContent = metric() ? 'bar' : 'psi';
-}
-$('btnConnect').onclick = () => mode === 'idle' ? $('dlgConnect').showModal() : (log('[Link] Disconnected by user.'), disconnect());
-$('dlgConnect').addEventListener('click', e => { const b = e.target.closest('[data-conn]'); if (b) connect(b.dataset.conn); });
-$('btnSound').onclick = toggleSound;
-$('btnUnits').onclick = () => { S.units = metric() ? 'imperial' : 'metric'; saveSettings(); applyUnits(); SERIES.forEach(s => s.data = []); };
-$('vPeak').onclick = () => peakBoost = 0;
-$('btnScan').onclick = scanDTCs;
-$('btnClear').onclick = clearDTCs;
-$('btnSend').onclick = sendCommand;
-$('cmd').addEventListener('keydown', e => { if (e.key === 'Enter') sendCommand(); });
-$('btnClearLog').onclick = () => $('term').innerHTML = '';
-$('btnTestBov').onclick = async () => { if (!sound.on) await toggleSound(); sound.fire(1); };
-$('btnTestSpool').onclick = async () => { if (!sound.on) await toggleSound(); sound.force = sound.ctx.currentTime + 2.2; };
-$('bovStyle').value = S.bovStyle;
-$('bovStyle').onchange = e => { S.bovStyle = e.target.value; saveSettings(); };
-$('sink').onchange = e => { S.sinkId = e.target.value; saveSettings(); sound.setSink(S.sinkId); };
+function applyUnits() { $('btnUnits').textContent = metric() ? 'Metric' : 'Imperial'; }
+$('inPill').onclick = $('outPill').onclick = () => $('links').scrollIntoView({ behavior: 'smooth' });
+$('btnBle').onclick = () => connectInput('ble');
+$('btnBleAll').onclick = e => { e.preventDefault(); connectInput('ble', { all: true }); };
+$('btnReconnect').onclick = reconnectLast;
+$('btnSerial').onclick = () => connectInput('serial');
+$('btnWifi').onclick = () => { log('[Wi-Fi] Not possible from a web page – see the explanation.'); $('dlgWifi').showModal(); };
+$('btnWifiOk').onclick = () => $('dlgWifi').close();
+$('btnSim').onclick = () => connectInput('sim');
+$('btnDisc').onclick = () => { userClosed = true; log('[Link] Disconnected.'); disconnect(); };
+$('chkAuto').checked = S.autoReconnect;
+$('chkAuto').onchange = e => { S.autoReconnect = e.target.checked; saveSettings(); };
 
-$('sliders').innerHTML = [['master', 'Master'], ['whistle', 'Whistle'], ['whoosh', 'Whoosh'], ['bov', 'Blow-off'], ['engine', 'Engine']].map(([k, l]) =>
+$('btnSound').onclick = toggleSound;
+$('btnTestOut').onclick = async () => { if (await startSound()) sound.fire(1); };
+$('btnTestValve').onclick = async () => { if (await startSound()) sound.fire(1); };
+$('btnTestSpool').onclick = async () => { if (await startSound()) sound.force = sound.ctx.currentTime + 2.2; };
+$('sink').onchange = e => { S.sinkId = e.target.value; saveSettings(); sound.setSink(S.sinkId).then(updateSoundUI); };
+$('btnPickOut').onclick = async () => {
+  try { const d = await navigator.mediaDevices.selectAudioOutput(); S.sinkId = d.deviceId; saveSettings(); await listOutputs(); await sound.setSink(S.sinkId); updateSoundUI(); }
+  catch (e) { log('[Sound] No speaker chosen.'); }
+};
+$('valveStyle').value = S.valveStyle;
+$('valveStyle').onchange = e => { S.valveStyle = e.target.value; saveSettings(); };
+$('fileBov').onchange = e => loadSample('bov', e.target.files[0]);
+$('fileFlutter').onchange = e => loadSample('flutter', e.target.files[0]);
+$('clrBov').onclick = () => clearSample('bov');
+$('clrFlutter').onclick = () => clearSample('flutter');
+
+$('sliders').innerHTML = [['master', 'Master'], ['valve', 'Valve (BOV)'], ['whistle', 'Turbo whine'], ['whoosh', 'Intake whoosh'], ['rumble', 'Boxer rumble']].map(([k, l]) =>
   `<label class="sl">${l}<input type="range" min="0" max="1" step="0.05" data-vol="${k}" value="${S.vol[k]}"><span>${Math.round(S.vol[k] * 100)}</span></label>`).join('');
 $('sliders').addEventListener('input', e => {
   const k = e.target.dataset.vol; if (!k) return;
   S.vol[k] = +e.target.value; e.target.nextElementSibling.textContent = Math.round(S.vol[k] * 100); saveSettings();
 });
 
+$('btnScan').onclick = scanDTCs;
+$('btnClear').onclick = () => $('clearConfirm').hidden = false;
+$('btnClearNo').onclick = () => $('clearConfirm').hidden = true;
+$('btnClearYes').onclick = clearDTCs;
+$('btnSend').onclick = sendCommand;
+$('cmd').addEventListener('keydown', e => { if (e.key === 'Enter') sendCommand(); });
+$('btnClearLog').onclick = () => $('term').innerHTML = '';
+$('btnUnits').onclick = () => { S.units = metric() ? 'imperial' : 'metric'; saveSettings(); applyUnits(); SERIES.forEach(s => s.data = []); };
+
 $('btnSettings').onclick = () => {
-  $('sCyl').value = S.cyl; $('sRed').value = S.redline; $('sShift').value = S.shiftRpm;
-  $('sBoost').value = S.maxBoostBar; $('sSpool').value = S.spoolSrc; $('sBaud').value = S.baud;
+  $('sTrans').value = S.trans; $('sRed').value = S.redline; $('sShift').value = S.shiftRpm; $('sTrig').value = S.trigger; $('sBaud').value = S.baud;
   $('dlgSettings').showModal();
 };
 $('btnSetCancel').onclick = () => $('dlgSettings').close();
 $('btnSetSave').onclick = () => {
-  S.cyl = +$('sCyl').value || 4; S.redline = clamp(+$('sRed').value || 6500, 3000, 12000);
-  S.shiftRpm = clamp(+$('sShift').value || S.redline - 500, 2000, 12000);
-  S.maxBoostBar = clamp(+$('sBoost').value || 1.5, 0.3, 4); S.spoolSrc = $('sSpool').value; S.baud = +$('sBaud').value;
+  S.trans = $('sTrans').value; S.redline = clamp(+$('sRed').value || 6500, 4000, 9000);
+  S.shiftRpm = clamp(+$('sShift').value || S.redline - 500, 2000, 9000); S.trigger = clamp(+$('sTrig').value || 20, 5, 60);
+  S.baud = +$('sBaud').value; sim.gear = 1;
   saveSettings(); $('dlgSettings').close();
 };
 
 // ---------------------------------------------------------------- start
 applyUnits();
-log('[System] OBD-PRO ready. Press Connect → Bluetooth / Serial for your car, or Simulation to test.');
-if (!navigator.bluetooth) log('[System] Web Bluetooth not available in this browser (needs Chrome/Edge; iPhone needs the Bluefy app).');
-connect('sim');
+showSampleNames();
+log('[System] Ready. INPUT: tap “Pair & connect Bluetooth” for the scanner. OUTPUT: tap “Start turbo sound”.');
+if (!navigator.bluetooth) log('[System] This browser has no Bluetooth access – on Android use Chrome, on iPhone the Bluefy browser.');
+connectInput('sim');
 requestAnimationFrame(frame);
 </script>
 </body>
