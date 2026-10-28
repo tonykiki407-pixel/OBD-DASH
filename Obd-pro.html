@@ -75,6 +75,11 @@ select,input[type=text],input[type=number]{background:var(--bg);color:var(--text
 .meter>div{height:100%;width:0;background:linear-gradient(90deg,#b45309,#ff4a1c)}
 .tag{font-size:10px;padding:2px 8px;border-radius:6px;border:1px solid var(--line);color:var(--muted)}
 .tag.on{color:var(--ok);border-color:#14532d}.tag.warn{color:var(--warn);border-color:#78350f}
+.tag.red{color:#fff;background:#b91c1c;border-color:#ef4444;animation:blink .28s steps(2) infinite}
+.subhead{margin:12px 0 2px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#9fb4dc}
+.sl2{display:grid;grid-template-columns:118px 1fr 66px;gap:8px;align-items:center;font-size:12px;color:var(--muted);margin:6px 0}
+.sl2 span{color:var(--text);text-align:right;font-variant-numeric:tabular-nums}
+.sl2 input{accent-color:#ff2a1a}
 details{margin-top:10px;font-size:12px}
 summary{cursor:pointer;color:#8fb0ee}
 .sample{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;margin-top:8px}
@@ -153,10 +158,13 @@ dialog h3{margin:0 0 6px}
     </section>
 
     <section class="card">
-      <h2>Virtual turbo <span id="soundState" class="tag">off</span></h2>
+      <h2>Virtual turbo <span class="row" style="gap:6px"><span id="valveTag" class="tag">valve idle</span><span id="soundState" class="tag">off</span></span></h2>
       <label class="field">Valve sound on lift-off
         <select id="valveStyle"><option value="flutter">Flutter “stu-tu-tu” (no BOV)</option><option value="bov">Blow-off valve “pssshh”</option><option value="both">Flutter + blow-off</option></select></label>
       <div id="sliders"></div>
+      <div class="subhead">Valve &amp; turbo settings</div>
+      <div id="valveSet"></div>
+      <p class="note" style="margin-top:4px">The red <b>BOV</b> light in the rev counter blinks when the valve is ready. Lift off the throttle then and it fires.</p>
       <div class="row" style="margin-top:6px"><span style="font-size:12px;color:var(--muted)">Spool</span><div class="meter grow"><div id="spoolBar"></div></div></div>
       <div class="grid2" style="margin-top:10px">
         <button id="btnTestSpool" class="btn">Spool up + lift off</button>
@@ -202,7 +210,6 @@ dialog h3{margin:0 0 6px}
     <label for="sTrans">Transmission</label><select id="sTrans"><option value="5MT">5-speed manual</option><option value="4AT">4-speed automatic</option></select>
     <label for="sRed">Redline (rpm)</label><input id="sRed" type="number" step="100" min="4000" max="9000">
     <label for="sShift">Shift lights full at (rpm)</label><input id="sShift" type="number" step="100" min="2000" max="9000">
-    <label for="sTrig">Valve fires when throttle drops by (%)</label><input id="sTrig" type="number" step="5" min="5" max="60">
     <label for="sBaud">Serial baud rate</label><select id="sBaud"><option>9600</option><option>38400</option><option>115200</option><option>230400</option><option>500000</option></select>
   </div>
   <p class="note">Your 2.5i has no turbo, so the turbo sound is “virtual”: spool builds from throttle and RPM, and lifting off fires the valve sound.</p>
@@ -230,7 +237,8 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 // ---------------------------------------------------------------- settings
 const DEFAULTS = { units: 'metric', trans: '5MT', redline: 6500, shiftRpm: 6000, trigger: 20, baud: 38400, autoReconnect: true,
-  valveStyle: 'flutter', sinkId: '', vol: { master: 0.9, whistle: 0.55, whoosh: 0.45, valve: 1, rumble: 0 } };
+  bovRpm: 3000, bovThr: 40, spoolRpm: 2000,
+  valveStyle: 'flutter', sinkId: '', vol: { master: 0.9, whistle: 0.75, whoosh: 0.6, valve: 1, rumble: 0 } };
 let S = loadSettings();
 function loadSettings() {
   const d = JSON.parse(JSON.stringify(DEFAULTS));
@@ -242,6 +250,12 @@ function saveSettings() { try { localStorage.setItem('impreza-dash', JSON.string
 // ---------------------------------------------------------------- live data (kPa, °C, km/h)
 const live = { rpm: 0, speed: 0, map: null, baro: 101, coolant: null, iat: null, throttle: 0, load: 0, fuel: null, volt: null, maf: null, timing: null };
 let thMin = 100;            // lowest raw throttle seen (closed throttle often reads 12–20 %)
+let thMax = 0;              // highest raw throttle seen (full throttle often reads 75–85 %)
+// Throttle as 0–100 % of the pedal travel this car actually reports.
+function throttleN() {
+  const top = Math.max(thMax, thMin + 30);
+  return clamp((live.throttle - thMin) / (top - thMin) * 100, 0, 100);
+}
 let mode = 'idle';          // idle | sim | ble | serial
 const vacuumKpa = () => live.map == null ? null : Math.max(0, live.baro - live.map);
 
@@ -420,7 +434,7 @@ async function connectInput(kind, opts = {}) {
   userClosed = false;
   await disconnect(true);
   if (kind === 'sim') {
-    mode = 'sim'; thMin = 0; setIn('demo car', 'sim'); $('inDev').textContent = 'Demo car';
+    mode = 'sim'; thMin = 0; thMax = 100; setIn('demo car', 'sim'); $('inDev').textContent = 'Demo car';
     log('[Demo] Virtual Impreza running – it accelerates, shifts and lifts off.'); keepAwake(); return true;
   }
   try {
@@ -434,7 +448,7 @@ async function connectInput(kind, opts = {}) {
       $('inDev').textContent = 'Serial port';
     }
     transport.onClose = () => onLinkLost(kind);
-    elm = new ELM(transport); mode = kind; thMin = 100;
+    elm = new ELM(transport); mode = kind; thMin = 100; thMax = 0;
     await initELM();
     setIn('live data', 'ok');
     keepAwake();
@@ -525,7 +539,7 @@ async function initELM() {
 
 // PID decoders. Throttle is read twice per cycle so lift-off is caught fast for the valve sound.
 const PIDS = {
-  '11': b => { live.throttle = b[0] * 100 / 255; thMin = Math.min(thMin, live.throttle); },
+  '11': b => { live.throttle = b[0] * 100 / 255; thMin = Math.min(thMin, live.throttle); thMax = Math.max(thMax, live.throttle); },
   '0C': b => live.rpm = ((b[0] << 8) + b[1]) / 4,
   '0D': b => live.speed = b[0],
   '04': b => live.load = b[0] * 100 / 255,
@@ -661,27 +675,20 @@ class TurboSound {
   tick(dt) {
     if (!this.ctx) return;
     const now = this.ctx.currentTime, V = S.vol;
-    const thN = clamp((live.throttle - thMin) / Math.max(1, 100 - thMin) * 100, 0, 100);
-    const rpmF = clamp((live.rpm - 1800) / 2800, 0, 1);
-    let target = Math.pow(thN / 100, 1.3) * rpmF;           // virtual turbo: spool from throttle × rpm
+    const thN = throttleN();
+    // virtual turbo: spool follows throttle, starting at the "turbo whine starts" rpm, full 2000 rpm later
+    const rpmF = clamp((live.rpm - S.spoolRpm) / 2000, 0, 1);
+    let target = clamp(thN / 85, 0, 1) * rpmF;
     if (now < this.force) target = 1;
-    else if (this.force) { this.force = 0; this.fire(this.spool); this.spool *= 0.15; }
-    this.spool += (target - this.spool) * Math.min(1, dt * (target > this.spool ? 1.4 : 4.5));
+    else if (this.force) { this.force = 0; this.fire(Math.max(this.spool, 0.8)); this.spool *= 0.15; }
+    this.spool += (target - this.spool) * Math.min(1, dt * (target > this.spool ? 1.8 : 4.5));
 
-    // valve: throttle closed quickly while spooled
-    this.hist.push([now, thN]);
-    while (this.hist.length && now - this.hist[0][0] > 0.6) this.hist.shift();
-    let maxTh = 0; for (const h of this.hist) maxTh = Math.max(maxTh, h[1]);
-    if (maxTh - thN > S.trigger && this.spool > 0.25 && now - this.lastValve > 0.8) {
-      this.fire(this.spool); this.lastValve = now; this.spool *= 0.15; this.hist = [];
-    }
-
-    const sp = this.spool, f = 2400 + sp * 6200;
+    const sp = this.spool, f = 2600 + sp * 6400;
     this.set(this.master.gain, V.master);
     this.set(this.w1.frequency, f); this.set(this.w2.frequency, f * 2.02);
-    this.set(this.wg.gain, Math.pow(sp, 1.8) * 0.07 * V.whistle);
+    this.set(this.wg.gain, Math.pow(sp, 1.2) * 0.16 * V.whistle);
     this.set(this.hb.frequency, 700 + sp * 3500);
-    this.set(this.hg.gain, sp * (0.35 + 0.65 * thN / 100) * 0.3 * V.whoosh);
+    this.set(this.hg.gain, sp * (0.4 + 0.6 * thN / 100) * 0.45 * V.whoosh);
     const fire = Math.max(live.rpm, 400) / 60 * 2;           // 4 cylinders: 2 firings per revolution
     this.set(this.r1.frequency, fire); this.set(this.r2.frequency, fire / 2); this.set(this.amLfo.frequency, fire / 2);
     this.set(this.rl.frequency, 180 + thN * 6 + live.rpm * 0.06);
@@ -704,7 +711,7 @@ class TurboSound {
   }
   // Blow-off valve: valve "pop", falling hiss, hollow pipe resonance.
   bov(k, t) {
-    const ctx = this.ctx, v = k * S.vol.valve, dur = 0.4 + 0.6 * k, out = this.gain(1);
+    const ctx = this.ctx, v = k * S.vol.valve, dur = 0.4 + 0.6 * k, out = this.gain(1.8);
     out.connect(this.master);
     { const s = this.noise(t), hp = this.filter('highpass', 2500, 0.7), g = this.env(t, v * 0.7, 0.002, 0.045);
       s.connect(hp).connect(g).connect(out); s.stop(t + 0.07); }
@@ -722,24 +729,54 @@ class TurboSound {
       setTimeout(() => { try { fb.disconnect(); } catch (e) {} }, (dur + 0.6) * 1000); }
   }
   // Compressor surge flutter: fast "tu" chirps that slow down and fade as the turbo winds down.
+  // STI-style compressor surge: loud round "chu" pulses (~25/s slowing down), a bit of whistle
+  // still in each pulse as the turbo winds down, and an airy hiss underneath.
   flutter(k, t) {
-    const ctx = this.ctx, n = Math.round(6 + k * 9), out = this.gain(S.vol.valve);
+    const ctx = this.ctx, n = Math.round(8 + k * 10), out = this.gain(S.vol.valve * 1.4);
     out.connect(this.master);
-    let tt = t, gap = 0.032, f = 1500 + k * 500;
+    let tt = t, gap = 0.038, f = 1100 + k * 400, wf = 2600 + k * 5000;
     for (let i = 0; i < n; i++) {
-      const a = Math.max(0.0003, k * Math.pow(1 - i / (n + 1), 1.4) * (0.85 + Math.random() * 0.3));
-      const o = ctx.createOscillator(); o.type = 'triangle';
-      o.frequency.setValueAtTime(f * 1.3, tt); o.frequency.exponentialRampToValueAtTime(f * 0.75, tt + 0.028);
-      o.connect(this.env(tt, a * 0.28, 0.003, 0.035)).connect(out); o.start(tt); o.stop(tt + 0.045);
+      const a = Math.max(0.0003, k * Math.pow(1 - i / (n + 1), 1.2) * (0.85 + Math.random() * 0.3));
       const s = this.noise(tt);
-      s.connect(this.filter('bandpass', f, 5)).connect(this.env(tt, a * 1.1, 0.002, 0.04)).connect(out); s.stop(tt + 0.05);
+      s.connect(this.filter('bandpass', f, 1.8)).connect(this.env(tt, a * 3, 0.002, 0.034)).connect(out); s.stop(tt + 0.045);
       const s2 = this.noise(tt);
-      s2.connect(this.filter('lowpass', 260, 1)).connect(this.env(tt, a * 0.9, 0.003, 0.03)).connect(out); s2.stop(tt + 0.04);
-      tt += gap * (0.9 + Math.random() * 0.2); gap *= 1.08; f *= 0.97;
+      s2.connect(this.filter('lowpass', 220, 1.2)).connect(this.env(tt, a * 2.2, 0.003, 0.03)).connect(out); s2.stop(tt + 0.04);
+      const o = ctx.createOscillator();
+      o.frequency.setValueAtTime(wf, tt); o.frequency.exponentialRampToValueAtTime(wf * 0.9, tt + 0.03);
+      o.connect(this.env(tt, a * 0.12, 0.004, 0.03)).connect(out); o.start(tt); o.stop(tt + 0.04);
+      tt += gap * (0.9 + Math.random() * 0.2); gap *= 1.06; f *= 0.975; wf *= 0.95;
     }
+    const h = this.noise(t);
+    h.connect(this.filter('highpass', 2000, 0.7)).connect(this.env(t, k * 0.3, 0.01, tt - t)).connect(out); h.stop(tt + 0.05);
   }
 }
 const sound = new TurboSound();
+
+// ---------------------------------------------------------------- valve logic (runs even with sound off; drives the red BOV light)
+// Armed: rpm ≥ "valve armed above" and throttle ≥ "armed when throttle above" for 0.25 s.
+// Fires: while armed (or up to 0.6 s after), the throttle drops by the "fires when throttle drops" amount.
+const valve = { armed: false, armedAt: 0, armedUntil: 0, hist: [], lastFire: -10 };
+function valveTick() {
+  const now = performance.now() / 1000, thN = throttleN();
+  valve.hist.push([now, thN]);
+  while (valve.hist.length && now - valve.hist[0][0] > 0.6) valve.hist.shift();
+  if (live.rpm >= S.bovRpm && thN >= S.bovThr) {
+    if (!valve.armedAt) valve.armedAt = now;
+    if (now - valve.armedAt >= 0.25) valve.armedUntil = now + 0.6;
+  } else valve.armedAt = 0;
+  valve.armed = now < valve.armedUntil && live.rpm >= S.bovRpm - 300;
+  let maxTh = 0; for (const h of valve.hist) maxTh = Math.max(maxTh, h[1]);
+  if (valve.armed && maxTh - thN >= S.trigger && now - valve.lastFire > 0.8) {
+    const k = clamp(0.5 + 0.5 * ((live.rpm - S.bovRpm) / 2500 + (maxTh - S.bovThr) / 100), 0.5, 1);
+    valve.lastFire = now; valve.armedUntil = 0; valve.armedAt = 0; valve.armed = false; valve.hist = [];
+    sound.fire(k); sound.spool *= 0.15;
+  }
+}
+// Tach light: blinks while armed, solid for 0.4 s when the valve fires.
+function valveLight(t) {
+  if (t / 1000 - valve.lastFire < 0.4) return 'vent';
+  return valve.armed ? (Math.floor(t / 140) % 2 === 0 ? 'on' : 'off') : 'off';
+}
 
 // ---------------------------------------------------------------- output (speaker) UI
 function outLabel() {
@@ -958,6 +995,16 @@ function drawDial(cv, val, o) {
     c.fillStyle = '#ffb347'; c.shadowColor = 'rgba(255,170,60,.6)'; c.shadowBlur = 6;
     c.font = `700 ${fr * 0.16}px ui-monospace,Consolas,monospace`; c.fillText(o.digital, cx, dy + 1); c.shadowBlur = 0;
   }
+  // red warning light (STI-style), used on the tach for "valve ready"
+  if (o.light) {
+    const ly = cy - fr * 0.5, lr = fr * 0.05, lit = o.light !== 'off';
+    c.beginPath(); c.arc(cx, ly, lr, 0, 2 * PI);
+    c.fillStyle = lit ? '#ff2a1a' : '#3a0f0b';
+    if (lit) { c.shadowColor = 'rgba(255,40,20,.95)'; c.shadowBlur = fr * (o.light === 'vent' ? 0.2 : 0.12); }
+    c.fill(); c.shadowBlur = 0;
+    c.fillStyle = lit ? '#ff6b5e' : '#5a2a26'; c.font = `700 ${Math.max(7, fr * 0.055)}px Arial,sans-serif`;
+    c.fillText('BOV', cx, ly + lr + fr * 0.05);
+  }
   // needle with glow
   c.save(); c.translate(cx, cy); c.rotate(ang(val));
   c.shadowColor = 'rgba(255,70,20,.85)'; c.shadowBlur = fr * 0.06;
@@ -1040,7 +1087,9 @@ function frame(t) {
 
   const PI = Math.PI;
   drawDial($('gTach'), disp.rpm, { min: 0, max: 8000, major: 1000, minor: 250, red: S.redline, fmt: v => v / 1000, numSize: 0.16,
-    title: 'x1000 r/min', digital: String(Math.round(disp.rpm)).padStart(4, ' ') });
+    title: 'x1000 r/min', titleY: -0.24, light: valveLight(t), digital: String(Math.round(disp.rpm)).padStart(4, ' ') });
+  const vt = $('valveTag'), vs = valve.armed ? 'ready' : 'idle';
+  if (vt.dataset.s !== vs) { vt.dataset.s = vs; vt.textContent = valve.armed ? 'VALVE READY' : 'valve idle'; vt.className = 'tag' + (valve.armed ? ' red' : ''); }
   drawDial($('gSpeed'), spd(disp.speed), { min: 0, max: speedMax(), major: 20, minor: 10, fmt: v => v, numSize: metric() ? 0.1 : 0.12,
     title: metric() ? 'km/h' : 'MPH', digital: String(Math.round(spd(disp.speed))).padStart(3, ' ') });
   drawDial($('gFuel'), disp.fuel, { min: 0, max: 100, major: 50, minor: 25, a0: PI * 1.1, a1: PI * 1.9, labels: [[0, 'E', '#ff3b30'], [100, 'F']], title: 'FUEL', titleY: 0.42, titleSize: 0.14 });
@@ -1052,7 +1101,7 @@ function frame(t) {
 }
 setInterval(pushHistory, 250);
 let lastTick = performance.now();
-setInterval(() => { const n = performance.now(); sound.tick((n - lastTick) / 1000); lastTick = n; }, 30);
+setInterval(() => { const n = performance.now(); valveTick(); sound.tick((n - lastTick) / 1000); lastTick = n; }, 30);
 
 // ---------------------------------------------------------------- screen wake lock (keeps the phone screen on)
 let wakeLock = null;
@@ -1091,6 +1140,18 @@ $('clrFlutter').onclick = () => clearSample('flutter');
 
 $('sliders').innerHTML = [['master', 'Master'], ['valve', 'Valve (BOV)'], ['whistle', 'Turbo whine'], ['whoosh', 'Intake whoosh'], ['rumble', 'Boxer rumble']].map(([k, l]) =>
   `<label class="sl">${l}<input type="range" min="0" max="1" step="0.05" data-vol="${k}" value="${S.vol[k]}"><span>${Math.round(S.vol[k] * 100)}</span></label>`).join('');
+const VALVE_SET = [
+  ['bovRpm', 'Valve armed above', 1500, 7000, 100, ' rpm'],
+  ['bovThr', 'Armed when throttle above', 10, 95, 5, ' %'],
+  ['trigger', 'Fires when throttle drops by', 5, 60, 5, ' %'],
+  ['spoolRpm', 'Turbo whine starts at', 1000, 5000, 100, ' rpm'],
+];
+$('valveSet').innerHTML = VALVE_SET.map(([k, l, mn, mx, st, u]) =>
+  `<label class="sl2">${l}<input type="range" min="${mn}" max="${mx}" step="${st}" data-set="${k}" data-u="${u}" value="${S[k]}"><span>${S[k]}${u}</span></label>`).join('');
+$('valveSet').addEventListener('input', e => {
+  const k = e.target.dataset.set; if (!k) return;
+  S[k] = +e.target.value; e.target.nextElementSibling.textContent = S[k] + e.target.dataset.u; saveSettings();
+});
 $('sliders').addEventListener('input', e => {
   const k = e.target.dataset.vol; if (!k) return;
   S.vol[k] = +e.target.value; e.target.nextElementSibling.textContent = Math.round(S.vol[k] * 100); saveSettings();
@@ -1106,14 +1167,13 @@ $('btnClearLog').onclick = () => $('term').innerHTML = '';
 $('btnUnits').onclick = () => { S.units = metric() ? 'imperial' : 'metric'; saveSettings(); applyUnits(); SERIES.forEach(s => s.data = []); };
 
 $('btnSettings').onclick = () => {
-  $('sTrans').value = S.trans; $('sRed').value = S.redline; $('sShift').value = S.shiftRpm; $('sTrig').value = S.trigger; $('sBaud').value = S.baud;
+  $('sTrans').value = S.trans; $('sRed').value = S.redline; $('sShift').value = S.shiftRpm; $('sBaud').value = S.baud;
   $('dlgSettings').showModal();
 };
 $('btnSetCancel').onclick = () => $('dlgSettings').close();
 $('btnSetSave').onclick = () => {
   S.trans = $('sTrans').value; S.redline = clamp(+$('sRed').value || 6500, 4000, 9000);
-  S.shiftRpm = clamp(+$('sShift').value || S.redline - 500, 2000, 9000); S.trigger = clamp(+$('sTrig').value || 20, 5, 60);
-  S.baud = +$('sBaud').value; sim.gear = 1;
+  S.shiftRpm = clamp(+$('sShift').value || S.redline - 500, 2000, 9000);  S.baud = +$('sBaud').value; sim.gear = 1;
   saveSettings(); $('dlgSettings').close();
 };
 
